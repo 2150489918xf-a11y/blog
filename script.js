@@ -63,6 +63,42 @@ const articleCatalog = [
     readTime: "阅读 6 分钟",
     tags: ["项目", "卡片", "信息架构"],
   },
+  {
+    title: "JavaSE 核心特性深度解析",
+    category: "后端开发",
+    date: "2026-04-28",
+    summary: "从集合框架底层原理到多线程并发控制，系统性梳理 JavaSE 在大型项目开发中的核心技术要点。",
+    path: "pages/articles/javase-core.html",
+    readTime: "阅读 15 分钟",
+    tags: ["Java", "并发编程", "JVM"],
+  },
+  {
+    title: "LangChain 实战：构建 LLM 应用",
+    category: "AI 开发",
+    date: "2026-04-28",
+    summary: "解析 LangChain 的六大核心模块，展示如何通过 Chain 和 Memory 快速搭建具有上下文感知能力的 AI 应用。",
+    path: "pages/articles/langchain-action.html",
+    readTime: "阅读 10 分钟",
+    tags: ["LangChain", "LLM", "Python"],
+  },
+  {
+    title: "LangGraph：控制智能体的循环逻辑",
+    category: "AI 研究",
+    date: "2026-04-28",
+    summary: "探讨如何利用 LangGraph 的状态图结构解决 LangChain 在复杂决策流中的局限性，实现高度可控的循环对话。",
+    path: "pages/articles/langgraph-flow.html",
+    readTime: "阅读 12 分钟",
+    tags: ["LangGraph", "智能体", "状态机"],
+  },
+  {
+    title: "RAG 架构进阶与向量数据库实践",
+    category: "AI 研究",
+    date: "2026-04-28",
+    summary: "深入讨论检索增强生成（RAG）的优化路径，包括 Query Transformation、Rerank 机制及向量数据库的选型对比。",
+    path: "pages/articles/rag-advanced.html",
+    readTime: "阅读 18 分钟",
+    tags: ["RAG", "向量数据库", "信息检索"],
+  },
 ];
 
 const projectCatalog = [
