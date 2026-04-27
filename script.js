@@ -287,57 +287,36 @@ function renderHomeArticles() {
 
 function renderArticleCatalog() {
   const container = document.getElementById("articleCatalogList");
-  if (!container) {
-    return;
-  }
-
-  const buttons = Array.from(document.querySelectorAll("[data-article-filter]"));
-  let currentFilter = "全部";
-
-  const paint = () => {
-    const filtered = currentFilter === "全部"
-      ? articleCatalog
-      : articleCatalog.filter((article) => article.category === currentFilter);
-
-    container.innerHTML = filtered.length > 0
-      ? filtered.map(createArticleCard).join("")
-      : '<div class="empty-state">当前分类暂无文章，切换到其他分类继续查看。</div>';
-
-    buttons.forEach((button) => {
-      button.classList.toggle("is-active", button.dataset.articleFilter === currentFilter);
-    });
-  };
-
-  buttons.forEach((button) => {
-    button.addEventListener("click", () => {
-      currentFilter = button.dataset.articleFilter;
-      paint();
-    });
-  });
-
-  paint();
+  if (!container) return;
+  
+  // 直接渲染全部笔记
+  container.innerHTML = articleCatalog.map(createArticleCard).join("");
 }
 
 function createProjectCard(project) {
+  const stackHtml = project.stack
+    ? `<div class="article-tags">${project.stack.split(" / ").map(s => `<span>${s}</span>`).join("")}</div>`
+    : "";
+    
   return `
     <article class="project-card">
       <span class="chip">${project.state}</span>
       <h3>${project.title}</h3>
       <p>${project.summary}</p>
-      <div class="project-meta">
-        <span>${project.stack}</span>
-      </div>
+      ${stackHtml}
     </article>
   `;
 }
 
 function renderProjectCards() {
+  // 首页亮点
   const homeGrid = document.getElementById("projectHighlights");
   if (homeGrid) {
-    homeGrid.innerHTML = projectCatalog.map(createProjectCard).join("");
+    homeGrid.innerHTML = projectCatalog.slice(0, 3).map(createProjectCard).join("");
   }
 
-  const pageGrid = document.getElementById("projectCatalogGrid");
+  // 实战教程页全量列表
+  const pageGrid = document.getElementById("projectList") || document.getElementById("projectCatalogGrid");
   if (pageGrid) {
     pageGrid.innerHTML = projectCatalog.map(createProjectCard).join("");
   }

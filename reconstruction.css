@@ -1,0 +1,60 @@
+﻿
+/* --- ULTIMATE 3-COLUMN ALIGNMENT RECONSTRUCTION --- */
+
+/* 1. 扩容全局容器，提升大气感 */
+.shell {
+  max-width: 1400px !important; 
+  padding: 0 30px !important;
+  margin: 0 auto !important;
+  box-sizing: border-box !important;
+}
+
+/* 2. 强力重构标题块（Hero） */
+.hero-glass {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 0 30px 0 !important;
+  padding: 50px !important;
+  box-sizing: border-box !important;
+  border-radius: 30px !important;
+}
+
+/* 3. 强力重构三列笔记网格 */
+.note-repository-layout .article-list {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important; /* 绝对三列 */
+  gap: 30px !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* 4. 彻底消除布局偏移 */
+.note-repository-layout,
+.content-stack,
+.page-layout {
+  display: block !important;
+  width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.article-card {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+}
+
+/* 响应式降级：在平板下切回两列 */
+@media (max-width: 1100px) {
+  .note-repository-layout .article-list {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+/* 响应式降级：在手机下切回一列 */
+@media (max-width: 768px) {
+  .note-repository-layout .article-list {
+    grid-template-columns: 1fr !important;
+  }
+}
