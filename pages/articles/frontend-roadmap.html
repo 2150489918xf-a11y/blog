@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>前端学习路线与项目推进方。?| 知行成长志?/title>
+  <link rel="stylesheet" href="../../styles.css">
+</head>
+<body data-page="articles" data-root="../..">
+  <header class="site-header">
+    <div class="shell site-header-inner">
+      <a class="brand" href="../../index.html" aria-label="返回首页">
+        <span class="brand-mark">C</span>
+        <span class="brand-copy">
+          <strong>Cactus's Blog</strong>
+          <small>课程设计作品集?/small>
+        </span>
+      </a>
+
+      <nav class="site-nav" aria-label="主导。?>
+        <ul class="menu-list">
+          <li><a class="menu-link" href="../../index.html" data-nav-page="home">首页</a></li>
+          <li class="dropdown" data-nav-dropdown>
+            <button class="menu-link menu-button" type="button" aria-expanded="false" data-dropdown-button>
+              技术文档?
+              <span class="menu-caret" aria-hidden="true"></span>
+            </button>
+            <ul class="dropdown-menu">
+              <li><a href="../../pages/articles/index.html">文章列表</a></li>
+              <li><a href="../../pages/articles/build-portfolio.html">课程设计复盘</a></li>
+              <li><a href="../../pages/articles/frontend-roadmap.html">学习路线</a></li>
+              <li><a href="../../pages/data/schedule.html">表格展示</a></li>
+            </ul>
+          </li>
+          <li class="dropdown" data-nav-dropdown>
+            <button class="menu-link menu-button" type="button" aria-expanded="false" data-dropdown-button>
+              实战教程
+              <span class="menu-caret" aria-hidden="true"></span>
+            </button>
+            <ul class="dropdown-menu">
+              <li><a href="../../pages/projects/index.html">项目展示</a></li>
+              <li><a href="../../pages/profile/settings.html">信息设置</a></li>
+
+
+            </ul>
+          </li>
+          <li><a class="menu-link" href="../../pages/resources/links.html" data-nav-page="resources">资源导航</a></li>
+          <li><a class="menu-link" href="../../pages/projects/index.html" data-nav-page="projects">互动交流</a></li>
+          <li><a class="menu-link" href="../../pages/profile/resume.html" data-nav-page="resume">关于</a></li>
+        </ul>
+      </nav>
+
+      <div class="clock-panel" id="siteClock" aria-live="polite">正在加载时间...</div>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <div class="shell article-shell">
+      <aside class="panel series-nav">
+        <p class="section-kicker">系列目录</p>
+        <h2 class="aside-card-title">前端成长记录</h2>
+        <p>这组内容更关注学习路线、项目推进和答辩表达，适合从“怎么学”这个角度解释整套作业。?/p>
+        <nav class="series-links" aria-label="文章系列导航">
+          <a href="./build-portfolio.html">从单页主页到课程设计完整站点</a>
+          <a class="is-active" href="./frontend-roadmap.html">前端学习路线与项目推进方。?/a>
+          <a href="./index.html">文章列表</a>
+          <a href="../../pages/profile/resume.html">个人简。?/a>
+        </nav>
+      </aside>
+
+      <article class="panel article-reader">
+        <header class="article-reader-header">
+          <div class="breadcrumbs">
+            <a href="../../index.html">首页</a>
+            <span>/</span>
+            <a href="./index.html">文章列表</a>
+            <span>/</span>
+            <span>学习路线</span>
+          </div>
+          <span class="chip">学习路线</span>
+          <h1>前端学习路线与项目推进方。?/h1>
+          <div class="article-meta">
+            <span>2026-04-24</span>
+            <span>阅读 10 分钟</span>
+            <span>课程项目驱动学习</span>
+          </div>
+        </header>
+
+        <div class="article-prose">
+          <section id="base">
+            <h2>一、基础阶段先解决什。?/h2>
+            <p>基础阶段最重要的不是追求技术点数量，而是先把 HTML 结构、CSS 布局。?JavaScript 事件逻辑打通。只有真正理解了语义化标签、盒模型、定位、Flex 。?Grid，后面做页面拆分和组件复用才不会乱。?/p>
+            <blockquote>如果不能解释一个页面的结构为什么这样分层，就说明基础还没有真正吃透。?/blockquote>
+          </section>
+
+          <section id="project">
+            <h2>二、课程项目如何倒逼学。?/h2>
+            <p>课程项目最大的价值不只是交作业，而是倒逼自己把零散知识串起来。比如一个简单的登录页，会同时用到表单结构、输入校验、错误提示、按钮状态和跳转逻辑；一个表格页则会牵扯到数据组织、状态展示和响应式处理。?/p>
+            <ul>
+              <li>登录注册页锻炼表单语义、交互状态和校验逻辑。?/li>
+              <li>文章详情页锻炼长内容排版和锚点跳转。?/li>
+              <li>表格和资源页锻炼信息整理与视觉层级控制。?/li>
+            </ul>
+          </section>
+
+          <section id="review">
+            <h2>三、如何避免做完页面却讲不明白</h2>
+            <p>很多同学做完页面后答辩依旧吃力，问题通常不在于页面不好看，而在于实现思路没有自己的语言。我的方法是每完成一类页面，就用一句话总结它的职责、一句话总结它的关键交互，再用一句话总结为何这样设计。这样现场解释会更顺。?/p>
+            <p>这也是我这次把首页改成“博客型作品集”的原因：页面职责更明确，答辩时比单纯展示卡片更容易讲出逻辑。?/p>
+          </section>
+
+          <section id="next">
+            <h2>四、下一步怎么扩展</h2>
+            <p>如果以后继续扩展这个站点，我会优先补充更丰富的项目详情和作品截图，再考虑把文章内容抽成数据渲染形式。当前课程设计阶段，静态多页加共享脚本已经足够展示前端基础能力。?/p>
+            <ol>
+              <li>先完善每个项目的封面图和成果描述。?/li>
+              <li>再把文章抽象成统一数据源，减少重复 HTML。?/li>
+              <li>最后考虑增加深色主题或更多筛选交互。?/li>
+            </ol>
+          </section>
+        </div>
+      </article>
+
+      <aside class="panel article-outline">
+        <p class="section-kicker">页内目录</p>
+        <h2 class="aside-card-title">快速定。?/h2>
+        <nav class="toc-list" aria-label="页内目录">
+          <a href="#base">基础阶段</a>
+          <a href="#project">课程项目驱动</a>
+          <a href="#review">答辩表达</a>
+          <a href="#next">后续扩展</a>
+        </nav>
+
+        <div class="widget-stat-block">
+          <strong>上一张?/strong>
+          <p>如果想回看这套站点是怎么从单页拆成多页的，可以先回到结构复盘。?/p>
+          <p><a class="text-link" href="./build-portfolio.html">从单页主页到课程设计完整站点</a></p>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell footer-inner">
+      <p>知行成长志?· 文章内容。?B</p>
+      <a href="../../index.html">返回首页</a>
+    </div>
+  </footer>
+
+  <button class="back-to-top" id="backToTop" type="button" aria-label="返回顶部">。?/button>
+  <script src="../../script.js" defer></script>
+</body>
+</html>
