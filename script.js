@@ -295,24 +295,24 @@ function markCurrentPage() {
   });
 }
 
-function buildArticleCover(index) {
-  const palettes = [
-    ["#e8faff", "#4954e6", "#ff7368", "#ffffff"],
-    ["#fff8dc", "#57c6e1", "#b49fda", "#fdd663"],
-    ["#f5edff", "#81c995", "#4954e6", "#ffffff"],
-  ];
-  const palette = palettes[index % palettes.length];
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300">
-      <rect width="600" height="300" rx="28" fill="${palette[0]}"/>
-      <circle cx="445" cy="72" r="82" fill="${palette[2]}" opacity="0.28"/>
-      <circle cx="305" cy="145" r="62" fill="${palette[3]}" opacity="0.9"/>
-      <path d="M88 250 205 78 322 250Z" fill="${palette[1]}" opacity="0.88"/>
-      <path d="M395 256 493 92 575 256Z" fill="${palette[2]}" opacity="0.9"/>
-      <rect x="40" y="34" width="138" height="36" rx="18" fill="white" opacity="0.58"/>
-    </svg>`;
-
-  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+function buildArticleCover(article, index) {
+  // 根据分类映射图片，增强相关性
+  const categoryMap = {
+    'AI 研究': 'images/cover3.png',
+    'AI 开发': 'images/cover4.png',
+    '后端开发': 'images/cover2.png',
+    '课程设计': 'images/cover1.png',
+    '学习路线': 'images/cover5.png',
+    '数据展示': 'images/cover6.png'
+  };
+  
+  if (categoryMap[article.category]) {
+    return resolvePath(categoryMap[article.category]);
+  }
+  
+  // 默认根据索引循环切换
+  const coverNum = (index % 6) + 1;
+  return resolvePath(`images/cover${coverNum}.png`);
 }
 
 function createArticleCard(article, index) {
@@ -322,7 +322,7 @@ function createArticleCard(article, index) {
     ? `<div class="article-tags">${article.tags.map((tag) => `<span>${tag}</span>`).join("")}</div>`
     : "";
   
-  const imgUrl = buildArticleCover(index);
+  const imgUrl = buildArticleCover(article, index);
   
   return `
     <article class="article-card butterfly-article">
