@@ -431,7 +431,7 @@ img, svg { display: block; max-width: 100%; }
 .sidebar-timeline-list a { line-height: 1.55; font-weight: 700; }
 
 /* === 子页面通用布局 === */
-.page-layout { grid-template-columns: minmax(0,1fr) 320px; align-items: start; margin-top: 22px; }
+.page-layout { grid-template-columns: minmax(0,1fr) 320px; margin-top: 22px; }
 .page-main .panel, .page-main .page-card, .page-main .form-card,
 .page-main .contact-card, .page-main .profile-card, .page-main .section-panel { padding: 24px 28px; }
 

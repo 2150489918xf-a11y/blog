@@ -68,27 +68,57 @@ const articleCatalog = [
 const projectCatalog = [
   {
     title: "个人作品集学习博客",
-    stack: "HTML / CSS / JavaScript",
-    state: "当前作业主项目",
-    summary: "以个人主页为视觉起点，扩展出文章、项目、表单和资源导航的完整多页站点。",
+    category: "课程设计",
+    date: "2026-04-27",
+    summary: "以个人主页为视觉起点，扩展出文章、项目、表单和资源导航的完整多页站点，是本次课程设计的主项目。",
+    path: "pages/projects/index.html",
+    readTime: "进行中",
+    tags: ["HTML", "CSS", "JavaScript"],
   },
   {
-    title: "JavaScript 交互小练习",
-    stack: "DOM / 事件 / 本地存储",
-    state: "持续积累",
-    summary: "收纳轮播、表单校验、筛选、返回顶部等基础交互逻辑，为课程设计提供可复用组件。",
+    title: "JavaScript 交互组件集",
+    category: "前端练习",
+    date: "2026-04-20",
+    summary: "收纳轮播、表单校验、筛选、返回顶部等基础交互逻辑，为课程设计提供可复用的组件。",
+    path: "pages/projects/index.html",
+    readTime: "持续积累",
+    tags: ["DOM", "事件", "本地存储"],
+  },
+  {
+    title: "AI 智能体对话原型",
+    category: "AI 探索",
+    date: "2026-04-15",
+    summary: "基于 Claude API 和 LangChain 构建的简单对话式智能体，实现多轮对话和上下文记忆功能。",
+    path: "pages/projects/index.html",
+    readTime: "实验阶段",
+    tags: ["Claude API", "LangChain", "Prompt"],
   },
   {
     title: "校园活动记录卡片页",
-    stack: "语义化 HTML / 响应式布局",
-    state: "展示内容补充",
-    summary: "用于展示社团活动、技术分享、课堂项目等校园生活内容，强化站点内容厚度。",
+    category: "内容展示",
+    date: "2026-04-10",
+    summary: "用于展示社团活动、技术分享、课堂项目等校园生活内容，强化站点的内容厚度。",
+    path: "pages/projects/index.html",
+    readTime: "内容补充",
+    tags: ["语义化 HTML", "响应式布局"],
   },
   {
     title: "学习计划与进度表",
-    stack: "表格设计 / 状态标签",
-    state: "用于表格页",
+    category: "数据展示",
+    date: "2026-04-06",
     summary: "通过表格可视化学习任务、课程安排和技能掌握度，展示信息组织与样式控制能力。",
+    path: "pages/data/schedule.html",
+    readTime: "已完成",
+    tags: ["表格设计", "状态标签"],
+  },
+  {
+    title: "Prompt Engineering 笔记",
+    category: "AI 探索",
+    date: "2026-03-28",
+    summary: "整理提示词工程的核心技巧，包括角色设定、Few-shot、Chain-of-Thought 等常用模式。",
+    path: "pages/projects/index.html",
+    readTime: "持续更新",
+    tags: ["Prompt", "AI", "技巧整理"],
   },
 ];
 
@@ -293,28 +323,33 @@ function renderArticleCatalog() {
   container.innerHTML = articleCatalog.map(createArticleCard).join("");
 }
 
-function createProjectCard(project) {
-  const stackHtml = project.stack
-    ? `<div class="article-tags">${project.stack.split(" / ").map(s => `<span>${s}</span>`).join("")}</div>`
+function createProjectCard(project, index) {
+  const tagHtml = project.tags
+    ? `<div class="article-tags">${project.tags.map((tag) => `<span>${tag}</span>`).join("")}</div>`
     : "";
-    
+
+  const imgUrl = buildArticleCover(index);
+
   return `
-    <article class="project-card">
-      <span class="chip">${project.state}</span>
-      <h3>${project.title}</h3>
-      <p>${project.summary}</p>
-      ${stackHtml}
+    <article class="article-card butterfly-article">
+      <div class="article-cover">
+        <img src="${imgUrl}" alt="project cover">
+      </div>
+      <div class="article-info">
+        <h3><a href="${resolvePath(project.path)}">${project.title}</a></h3>
+        <div class="article-meta">
+          <span><i class="far fa-calendar-alt"></i> ${project.date}</span>
+          <span><i class="fas fa-inbox"></i> ${project.category}</span>
+          <span><i class="fas fa-clock"></i> ${project.readTime}</span>
+        </div>
+        <p class="article-summary">${project.summary}</p>
+        ${tagHtml}
+      </div>
     </article>
   `;
 }
 
 function renderProjectCards() {
-  // 首页亮点
-  const homeGrid = document.getElementById("projectHighlights");
-  if (homeGrid) {
-    homeGrid.innerHTML = projectCatalog.slice(0, 3).map(createProjectCard).join("");
-  }
-
   // 实战教程页全量列表
   const pageGrid = document.getElementById("projectList") || document.getElementById("projectCatalogGrid");
   if (pageGrid) {
