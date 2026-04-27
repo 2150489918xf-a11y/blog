@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>从单页主页到课程设计完整站点 | 知行成长志?/title>
+  <title>从单页主页到课程设计完整站点 | 知行成长志</title>
   <link rel="stylesheet" href="../../styles.css">
 </head>
 <body data-page="articles" data-root="../..">
@@ -13,7 +13,7 @@
         <span class="brand-mark">C</span>
         <span class="brand-copy">
           <strong>Cactus's Blog</strong>
-          <small>课程设计作品集?/small>
+          <small>课程设计作品集</small>
         </span>
       </a>
 
@@ -58,11 +58,11 @@
     <div class="shell article-shell">
       <aside class="panel series-nav">
         <p class="section-kicker">系列目录</p>
-        <h2 class="aside-card-title">课程设计文章。?/h2>
-        <p>把这次站点改造拆成结构、视觉、交互和答辩四个观察点，阅读时可以按顺序推进。?/p>
+        <h2 class="aside-card-title">课程设计文章。</h2>
+        <p>把这次站点改造拆成结构、视觉、交互和答辩四个观察点，阅读时可以按顺序推进。</p>
         <nav class="series-links" aria-label="文章系列导航">
           <a class="is-active" href="./build-portfolio.html">从单页主页到课程设计完整站点</a>
-          <a href="./frontend-roadmap.html">前端学习路线与项目推进方。?/a>
+          <a href="./frontend-roadmap.html">前端学习路线与项目推进方。</a>
           <a href="./index.html">文章列表</a>
           <a href="../../pages/projects/index.html">项目展示</a>
         </nav>
@@ -88,34 +88,34 @@
 
         <div class="article-prose">
           <section id="target">
-            <h2>一、为什么必须从信息架构先下。?/h2>
-            <p>原始页面虽然已经具备一定视觉完成度，但它只有一个首页，无法满足课程设计对文章列表、文章内容、个人简历、信息设置、登录注册和表格展示等多类页面的要求。与其在一个页面里不断堆模块，不如先按照功能角色拆分页面，再让共享样式重新把它们连成一个整体。?/p>
+            <h2>一、为什么必须从信息架构先下。</h2>
+            <p>原始页面虽然已经具备一定视觉完成度，但它只有一个首页，无法满足课程设计对文章列表、文章内容、个人简历、信息设置、登录注册和表格展示等多类页面的要求。与其在一个页面里不断堆模块，不如先按照功能角色拆分页面，再让共享样式重新把它们连成一个整体。</p>
             <blockquote>真正决定完成度的不是页面数量，而是每个页面在整个站点里承担什么角色。?/blockquote>
           </section>
 
           <section id="structure">
-            <h2>二、目录结构如何满足三层要。?/h2>
-            <p>课程要求强调站点至少有三层，因此我没有把所。?HTML 文件平铺在根目录，而是按内容类型组织到 pages 目录下。例如文章详情页位于 pages/articles/build-portfolio.html，这样既满足深度要求，也让页面类型更清晰。?/p>
+            <h2>二、目录结构如何满足三层要。</h2>
+            <p>课程要求强调站点至少有三层，因此我没有把所。?HTML 文件平铺在根目录，而是按内容类型组织到 pages 目录下。例如文章详情页位于 pages/articles/build-portfolio.html，这样既满足深度要求，也让页面类型更清晰。</p>
             <ul>
-              <li>首页负责站点入口、轮播、文章摘要和友情链接。?/li>
-              <li>pages/articles 下承载文章列表与详情内容。?/li>
-              <li>pages/profile、pages/auth、pages/data 等目录分别对应老师指定页面类型。?/li>
+              <li>首页负责站点入口、轮播、文章摘要和友情链接。</li>
+              <li>pages/articles 下承载文章列表与详情内容。</li>
+              <li>pages/profile、pages/auth、pages/data 等目录分别对应老师指定页面类型。</li>
             </ul>
           </section>
 
           <section id="visual">
             <h2>三、如何保证多页站点不显得拼凑</h2>
-            <p>真正影响完成度的不是页面数量，而是不同页面之间是否像同一套系统。为此我把配色、圆角、卡片阴影、标题层级、按钮和导航样式全部抽成共享样式，只让页面内容本身不同。这样无论是文章页、表单页还是表格页，看上去都属于同一站点。?/p>
-            <p>这次回调里，重点又把首页和文章详情页改成更接近参考图的浅色博客布局，让“作品集”不再只是堆卡片，而是真正像在浏览一套个人博客。?/p>
+            <p>真正影响完成度的不是页面数量，而是不同页面之间是否像同一套系统。为此我把配色、圆角、卡片阴影、标题层级、按钮和导航样式全部抽成共享样式，只让页面内容本身不同。这样无论是文章页、表单页还是表格页，看上去都属于同一站点。</p>
+            <p>这次回调里，重点又把首页和文章详情页改成更接近参考图的浅色博客布局，让“作品集”不再只是堆卡片，而是真正像在浏览一套个人博客。</p>
           </section>
 
           <section id="defense">
             <h2>四、为什么这样的实现更适合答辩</h2>
-            <p>答辩时老师通常会问“为什么这样拆页面”“如何实现表单提交”“为什么不用框架”。静态多页站更容易解释：目录清晰、路径可见、共享样式和共享脚本都在明面上，任何一处交互都能沿着 DOM 结构讲清楚。?/p>
+            <p>答辩时老师通常会问“为什么这样拆页面”“如何实现表单提交”“为什么不用框架”。静态多页站更容易解释：目录清晰、路径可见、共享样式和共享脚本都在明面上，任何一处交互都能沿着 DOM 结构讲清楚。</p>
             <ol>
-              <li>首页说明整体信息架构与视觉主题。?/li>
-              <li>文章页说明三栏布局、锚点跳转和长内容排版。?/li>
-              <li>表单页说明前端验证与提交后跳转浏览页的流程。?/li>
+              <li>首页说明整体信息架构与视觉主题。</li>
+              <li>文章页说明三栏布局、锚点跳转和长内容排版。</li>
+              <li>表单页说明前端验证与提交后跳转浏览页的流程。</li>
             </ol>
           </section>
         </div>
@@ -123,18 +123,18 @@
 
       <aside class="panel article-outline">
         <p class="section-kicker">页内目录</p>
-        <h2 class="aside-card-title">快速定。?/h2>
+        <h2 class="aside-card-title">快速定。</h2>
         <nav class="toc-list" aria-label="页内目录">
-          <a href="#target">为什么先做信息架。?/a>
-          <a href="#structure">目录结构与三层要。?/a>
-          <a href="#visual">统一视觉的方。?/a>
-          <a href="#defense">答辩友好的原。?/a>
+          <a href="#target">为什么先做信息架。</a>
+          <a href="#structure">目录结构与三层要。</a>
+          <a href="#visual">统一视觉的方。</a>
+          <a href="#defense">答辩友好的原。</a>
         </nav>
 
         <div class="widget-stat-block">
           <strong>继续阅读</strong>
-          <p>下一篇会从学习路径的角度，讲这套站点如何把“作业完成”变成“可展示的作品”。?/p>
-          <p><a class="text-link" href="./frontend-roadmap.html">前端学习路线与项目推进方。?/a></p>
+          <p>下一篇会从学习路径的角度，讲这套站点如何把“作业完成”变成“可展示的作品”。</p>
+          <p><a class="text-link" href="./frontend-roadmap.html">前端学习路线与项目推进方。</a></p>
         </div>
       </aside>
     </div>
@@ -147,7 +147,7 @@
     </div>
   </footer>
 
-  <button class="back-to-top" id="backToTop" type="button" aria-label="返回顶部">。?/button>
+  <button class="back-to-top" id="backToTop" type="button" aria-label="返回顶部">。</button>
   <script src="../../script.js" defer></script>
 </body>
 </html>
