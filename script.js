@@ -300,9 +300,11 @@ function buildArticleCover(article, index) {
   const categoryMap = {
     'AI 研究': 'images/cover3.png',
     'AI 开发': 'images/cover4.png',
+    'AI 探索': 'images/cover4.png',
     '后端开发': 'images/cover2.png',
     '课程设计': 'images/cover1.png',
     '学习路线': 'images/cover5.png',
+    '前端练习': 'images/cover5.png',
     '数据展示': 'images/cover6.png'
   };
   
@@ -364,7 +366,7 @@ function createProjectCard(project, index) {
     ? `<div class="article-tags">${project.tags.map((tag) => `<span>${tag}</span>`).join("")}</div>`
     : "";
 
-  const imgUrl = buildArticleCover(index);
+  const imgUrl = buildArticleCover(project, index);
 
   return `
     <article class="article-card butterfly-article">
