@@ -296,14 +296,14 @@ function markCurrentPage() {
 }
 
 function buildArticleCover(article, index) {
-  // 根据分类映射图片，增强相关性
+  // 根据分类映射图片，增强相关性（现在有 12 张可选图片）
   const categoryMap = {
-    'AI 研究': 'images/cover3.png',
-    'AI 开发': 'images/cover4.png',
-    'AI 探索': 'images/cover4.png',
-    '后端开发': 'images/cover2.png',
-    '课程设计': 'images/cover1.png',
-    '学习路线': 'images/cover5.png',
+    'AI 研究': `images/cover${(index % 2 === 0) ? 3 : 7}.png`, // AI 研究交替使用 3 和 7
+    'AI 开发': `images/cover${(index % 2 === 0) ? 4 : 8}.png`, // AI 开发交替使用 4 和 8
+    'AI 探索': 'images/cover12.png',
+    '后端开发': `images/cover${(index % 2 === 0) ? 2 : 11}.png`,
+    '课程设计': `images/cover${(index % 2 === 0) ? 1 : 10}.png`,
+    '学习路线': `images/cover${(index % 2 === 0) ? 5 : 9}.png`,
     '前端练习': 'images/cover5.png',
     '数据展示': 'images/cover6.png'
   };
@@ -312,8 +312,8 @@ function buildArticleCover(article, index) {
     return resolvePath(categoryMap[article.category]);
   }
   
-  // 默认根据索引循环切换
-  const coverNum = (index % 6) + 1;
+  // 默认根据索引在 12 张图中循环切换
+  const coverNum = (index % 12) + 1;
   return resolvePath(`images/cover${coverNum}.png`);
 }
 
