@@ -445,12 +445,20 @@ img, svg { display: block; max-width: 100%; }
 }
 .tag-row { display: flex; flex-wrap: wrap; gap: 10px; }
 .quick-link-list, .toc-list, .series-links, .status-list { display: grid; gap: 12px; }
-.quick-link-list a, .toc-list a, .series-links a {
+.quick-link-list a, .series-links a {
   display: block; padding: 12px 14px; border-radius: 14px;
   background: rgba(255,255,255,0.7); color: var(--text-soft);
 }
-.quick-link-list a:hover, .toc-list a:hover, .series-links a:hover, .series-links a.is-active {
+.toc-list a {
+  display: block; padding: 8px 16px; position: relative;
+  color: var(--text-soft); font-size: 0.92rem; transition: all 0.2s;
+  border-left: 2px solid rgba(0,0,0,0.06);
+}
+.quick-link-list a:hover, .series-links a:hover, .series-links a.is-active {
   background: rgba(221,75,71,0.1); color: var(--accent);
+}
+.toc-list a:hover {
+  color: var(--accent); border-left-color: var(--accent); background: rgba(221,75,71,0.04);
 }
 
 .friend-link-grid { padding: 18px 0 0; gap: 0; }
@@ -466,8 +474,8 @@ img, svg { display: block; max-width: 100%; }
 }
 .friend-link strong { display: block; margin: 10px 0 4px; }
 
-/* === 三列文章阅读页 === */
-.article-shell { grid-template-columns: 260px minmax(0,1fr) 220px; align-items: start; }
+/* === 文章阅读页（两列布局） === */
+.article-shell { grid-template-columns: minmax(0,1fr) 280px; align-items: start; }
 .series-nav, .article-outline { position: sticky; top: calc(var(--header-height) + 22px); padding: 22px; }
 .article-reader { padding: 28px 32px; background: rgba(255,255,255,0.78); }
 .article-reader-header { padding-bottom: 18px; border-bottom: 1px solid rgba(168,176,211,0.3); }
