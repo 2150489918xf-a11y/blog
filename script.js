@@ -763,7 +763,7 @@ function initAmbientBackground() {
 
   background.setAttribute("aria-hidden", "true");
 
-  for (let index = 1; index <= 8; index++) {
+  for (let index = 1; index <= 3; index++) {
     const className = `shape${index}`;
     let shape = document.querySelector(`.${className}`);
 
