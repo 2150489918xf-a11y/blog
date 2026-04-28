@@ -1519,6 +1519,19 @@
       }
     });
 
+    // 输入标题时自动生成 slug
+    $('articleTitle').addEventListener('input', function () {
+      var slugInput = $('articleSlug');
+      // 只在 slug 为空或之前是自动生成的情况下自动填充
+      if (!slugInput.value || slugInput.dataset.autoSlug === '1') {
+        slugInput.value = this.value.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+        slugInput.dataset.autoSlug = '1';
+      }
+    });
+    $('articleSlug').addEventListener('input', function () {
+      this.dataset.autoSlug = '0';
+    });
+
     // 正文插图上传
     $dropZone.addEventListener('click', function () { $fileInput.click(); });
     $fileInput.addEventListener('change', function (e) { Array.from(e.target.files).forEach(uploadFile); });
