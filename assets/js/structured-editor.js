@@ -779,43 +779,6 @@
     renderEditor();
   }
 
-  async function loadResourceGroupOptions() {
-    var groups = await BlogDB.getAllResourceGroups();
-    return groups.map(function (group) {
-      return { label: group.name, value: group.id };
-    });
-  }
-
-  async function loadNavigationParentOptions() {
-    var items = await BlogDB.getAllNavigationItems();
-    return items.map(function (item) {
-      return { label: item.label + ' · ' + item.href, value: item.id };
-    });
-  }
-
-  async function loadResourceLinkRecords() {
-    var groups = await BlogDB.getAllResourceGroups();
-    var groupMap = groups.reduce(function (acc, group) {
-      acc[group.id] = group.name;
-      return acc;
-    }, {});
-    var links = await BlogDB.getAllResourceLinks();
-    return links.map(function (link) {
-      return Object.assign({}, link, {
-        group_name: groupMap[link.group_id] || '未分组'
-      });
-    });
-  }
-
-  function toast(msg, type) {
-    type = type || 'info';
-    var el = document.createElement('div');
-    el.className = 'toast ' + type;
-    el.textContent = msg;
-    $toastContainer.appendChild(el);
-    setTimeout(function () { el.remove(); }, 3500);
-  }
-
   // ================================================================
   //  暴露 API
   // ================================================================

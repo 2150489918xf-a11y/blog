@@ -345,6 +345,46 @@
     return document.getElementById(id);
   }
 
+  /** 显示 Toast 提示消息（3.5 秒自动消失） */
+  function toast(msg, type) {
+    type = type || 'info';
+    var el = document.createElement('div');
+    el.className = 'toast ' + type;
+    el.textContent = msg;
+    $toastContainer.appendChild(el);
+    setTimeout(function () { el.remove(); }, 3500);
+  }
+
+  // ---- 异步选项加载（供 MODULES 字段的 options 回调使用）----
+
+  async function loadResourceGroupOptions() {
+    var groups = await BlogDB.getAllResourceGroups();
+    return groups.map(function (group) {
+      return { label: group.name, value: group.id };
+    });
+  }
+
+  async function loadNavigationParentOptions() {
+    var items = await BlogDB.getAllNavigationItems();
+    return items.map(function (item) {
+      return { label: item.label + ' · ' + item.href, value: item.id };
+    });
+  }
+
+  async function loadResourceLinkRecords() {
+    var groups = await BlogDB.getAllResourceGroups();
+    var groupMap = groups.reduce(function (acc, group) {
+      acc[group.id] = group.name;
+      return acc;
+    }, {});
+    var links = await BlogDB.getAllResourceLinks();
+    return links.map(function (link) {
+      return Object.assign({}, link, {
+        group_name: groupMap[link.group_id] || '未分组'
+      });
+    });
+  }
+
   // ================================================================
   //  3. 工具函数
   // ================================================================
