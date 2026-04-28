@@ -315,34 +315,42 @@ function buildHomeCarouselSlide(slide, index) {
       </div>
     `;
 
+  var linkedVisual = slide.linkUrl
+    ? `<a href="${slide.linkUrl}" class="carousel-visual-link">${visualHtml}</a>`
+    : visualHtml;
+
   return `
     <article class="carousel-slide ${index === 0 ? "is-active" : ""}" data-slide>
-      ${visualHtml}
+      ${linkedVisual}
       <div class="carousel-content">
         <div class="carousel-meta-row">${meta.join("")}</div>
-        <h2>${slide.title || "未命名轮播"}</h2>
+        <h2>${slide.linkUrl ? `<a href="${slide.linkUrl}">${slide.title || "未命名轮播"}</a>` : (slide.title || "未命名轮播")}</h2>
         <p>${slide.summary || ""}</p>
       </div>
     </article>
   `;
 }
 
-var contentCoverCache = null;
+var contentMetaCache = null;
 
-async function ensureContentCoverCache() {
-  if (contentCoverCache) return contentCoverCache;
+async function ensureContentMetaCache() {
+  if (contentMetaCache) return contentMetaCache;
   var cache = {};
   try {
     var articles = await BlogDB.getPublishedArticles();
     if (articles) {
-      articles.forEach(function (a) { cache[a.id] = a.cover_url || ''; });
+      articles.forEach(function (a) {
+        cache[a.id] = { cover: a.cover_url || '', slug: a.slug || '', source: 'article' };
+      });
     }
     var projects = await BlogDB.getPublishedProjects();
     if (projects) {
-      projects.forEach(function (p) { cache[p.id] = p.cover_url || ''; });
+      projects.forEach(function (p) {
+        cache[p.id] = { cover: p.cover_url || '', slug: p.slug || '', source: 'project' };
+      });
     }
-  } catch (_) { /* 降级：使用 slide 自带的 imageUrl */ }
-  contentCoverCache = cache;
+  } catch (_) { /* 降级 */ }
+  contentMetaCache = cache;
   return cache;
 }
 
@@ -363,19 +371,25 @@ function renderHomeCarouselSection(section) {
     return;
   }
 
-  // 异步解析封面图：从 refId 指向的文章/项目获取最新封面
-  ensureContentCoverCache().then(function (coverCache) {
+  // 异步解析封面图和链接：从 refId 指向的文章/项目获取最新数据
+  ensureContentMetaCache().then(function (metaCache) {
     slides = slides.map(function (slide) {
-      if (slide.refId && coverCache[slide.refId]) {
-        return Object.assign({}, slide, { imageUrl: coverCache[slide.refId] });
+      var meta = (slide.refId && metaCache[slide.refId]) ? metaCache[slide.refId] : null;
+      var enriched = Object.assign({}, slide);
+      if (meta) {
+        enriched.imageUrl = meta.cover || slide.imageUrl;
+        // 只有文章有独立详情页，项目只展示封面不跳转
+        if (meta.source === 'article' && meta.slug) {
+          enriched.linkUrl = resolvePath('pages/articles/' + meta.slug + '.html');
+        }
       }
-      return slide;
+      return enriched;
     });
 
-    track.innerHTML = slides.map(buildHomeCarouselSlide).join("");
+    track.innerHTML = slides.map(buildHomeCarouselSlide).join('');
     dots.innerHTML = slides.map(function (_slide, index) {
       return '<button class="dot ' + (index === 0 ? 'is-active' : '') + '" type="button" data-carousel-dot="' + index + '" aria-label="第 ' + (index + 1) + ' 张"></button>';
-    }).join("");
+    }).join('');
 
     // 重新初始化轮播（因为 dots 更新了）
     initCarousel();

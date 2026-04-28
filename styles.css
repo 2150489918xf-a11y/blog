@@ -292,7 +292,12 @@ img, svg { display: block; max-width: 100%; }
   color: var(--text-muted); font-size: 0.9rem;
 }
 .carousel-content h2 { margin: 14px 0 10px; font-size: 1.55rem; }
+.carousel-content h2 a { color: inherit; transition: color 0.2s; }
+.carousel-content h2 a:hover { color: var(--accent); }
 .carousel-content p { margin: 0; color: var(--text-soft); }
+.carousel-visual-link { display: block; cursor: pointer; }
+.carousel-visual-link:hover img { transform: scale(1.02); transition: transform 0.3s; }
+.carousel-visual-link:hover .carousel-visual-copy { opacity: 0.9; }
 
 .carousel-controls { display: flex; align-items: center; justify-content: flex-end; gap: 14px; padding: 20px 24px 0; }
 .carousel-button, .dot, .chip, .chip-button { border: 0; }
