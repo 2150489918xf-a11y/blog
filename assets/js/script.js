@@ -906,14 +906,14 @@ function buildArticleCover(article, index) {
 
   // 根据分类映射图片，增强相关性（现在有 12 张可选图片）
   const categoryMap = {
-    'AI 研究': `images/cover${(index % 2 === 0) ? 3 : 7}.jpg`,
-    'AI 开发': `images/cover${(index % 2 === 0) ? 4 : 8}.jpg`,
-    'AI 探索': 'images/cover12.jpg',
-    '后端开发': `images/cover${(index % 2 === 0) ? 2 : 11}.jpg`,
-    '课程设计': `images/cover${(index % 2 === 0) ? 1 : 10}.jpg`,
-    '学习路线': `images/cover${(index % 2 === 0) ? 5 : 9}.jpg`,
-    '前端练习': 'images/cover5.jpg',
-    '数据展示': 'images/cover6.jpg'
+    'AI 研究': `assets/images/cover${(index % 2 === 0) ? 3 : 7}.jpg`,
+    'AI 开发': `assets/images/cover${(index % 2 === 0) ? 4 : 8}.jpg`,
+    'AI 探索': 'assets/images/cover12.jpg',
+    '后端开发': `assets/images/cover${(index % 2 === 0) ? 2 : 11}.jpg`,
+    '课程设计': `assets/images/cover${(index % 2 === 0) ? 1 : 10}.jpg`,
+    '学习路线': `assets/images/cover${(index % 2 === 0) ? 5 : 9}.jpg`,
+    '前端练习': 'assets/images/cover5.jpg',
+    '数据展示': 'assets/images/cover6.jpg'
   };
   
   if (categoryMap[article.category]) {
@@ -922,7 +922,7 @@ function buildArticleCover(article, index) {
   
   // 默认根据索引在 12 张图中循环切换
   const coverNum = (index % 12) + 1;
-  return resolvePath(`images/cover${coverNum}.jpg`);
+  return resolvePath(`assets/images/cover${coverNum}.jpg`);
 }
 
 function createArticleCard(article, index) {
