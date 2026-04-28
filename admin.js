@@ -20,18 +20,19 @@
       listTitle: '项目列表',
       columns: [
         { key: 'title', label: '标题' },
+        { key: 'tech_tags', label: '技术栈', format: function (v) { return Array.isArray(v) ? v.join(', ') : (v || ''); } },
         { key: 'status', label: '状态' },
-        { key: 'sort_order', label: '顺序' },
+        { key: 'sort_order', label: '排序' },
         { key: 'published', label: '可见', format: function (value) { return value ? '已发布' : '草稿'; } }
       ],
       fields: [
         { name: 'title', label: '项目标题', type: 'text', required: true },
-        { name: 'slug', label: '项目 Slug', type: 'text' },
+        { name: 'slug', label: 'URL 路径名', type: 'text', placeholder: '输入标题后自动生成' },
+        { name: 'cover_url', label: '封面图片', type: 'cover' },
         { name: 'summary', label: '项目摘要', type: 'textarea', full: true },
         { name: 'description', label: '详细描述', type: 'textarea', full: true },
-        { name: 'status', label: '项目状态', type: 'text' },
-        { name: 'tech_tags', label: '技术标签（逗号分隔）', type: 'text', full: true, format: joinArray, parse: splitCommaValues },
-        { name: 'cover_url', label: '封面图 URL', type: 'url' },
+        { name: 'status', label: '项目状态', type: 'select', options: staticOptions(['进行中', '已完成', '待开始']) },
+        { name: 'tech_tags', label: '技术标签', type: 'tags', parse: splitCommaValues },
         { name: 'demo_url', label: '演示地址', type: 'url' },
         { name: 'repo_url', label: '仓库地址', type: 'url' },
         { name: 'sort_order', label: '排序', type: 'number', defaultValue: 0 },
@@ -41,7 +42,8 @@
       createRecord: function (payload) { return BlogDB.createProject(payload); },
       updateRecord: function (id, payload) { return BlogDB.updateProject(id, payload); },
       deleteRecord: function (id) { return BlogDB.deleteProject(id); },
-      toggleRecord: function (id, current) { return BlogDB.updateProject(id, { published: !current }); }
+      toggleRecord: function (id, current) { return BlogDB.updateProject(id, { published: !current }); },
+      afterRender: initGenericWidgets
     },
     resource_groups: {
       type: 'generic',
@@ -890,6 +892,121 @@
     if (type === 'prose') content.paragraphs.splice(index, 1);
   }
 
+  function initGenericWidgets(moduleId) {
+    var module = MODULES[moduleId];
+    if (!module || !module.fields) return;
+
+    // ---- Slug 自动生成 ----
+    var titleField = module.fields.find(function (f) { return f.name === 'title'; });
+    var slugField = module.fields.find(function (f) { return f.name === 'slug'; });
+    if (titleField && slugField) {
+      var $titleInput = $moduleForm.querySelector('[name="title"]');
+      var $slugInput = $moduleForm.querySelector('[name="slug"]');
+      if ($titleInput && $slugInput) {
+        $titleInput.addEventListener('input', function () {
+          if (!$slugInput.value || $slugInput.dataset.autoSlug === '1') {
+            $slugInput.value = this.value.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+            $slugInput.dataset.autoSlug = '1';
+          }
+        });
+        $slugInput.addEventListener('input', function () {
+          this.dataset.autoSlug = '0';
+        });
+      }
+    }
+
+    // ---- 封面上传 ----
+    var coverArea = $moduleForm.querySelector('[data-cover-area]');
+    if (coverArea) {
+      var coverHidden = $moduleForm.querySelector('[data-cover-hidden]');
+      var coverPreview = $moduleForm.querySelector('[data-cover-preview]');
+      var coverPreviewImg = $moduleForm.querySelector('[data-cover-preview-img]');
+      var coverPlaceholder = $moduleForm.querySelector('[data-cover-placeholder]');
+      var coverRemove = $moduleForm.querySelector('[data-cover-remove]');
+
+      // 创建隐藏的 file input
+      var coverFileInput = document.createElement('input');
+      coverFileInput.type = 'file';
+      coverFileInput.accept = 'image/*';
+      coverFileInput.style.display = 'none';
+      coverArea.appendChild(coverFileInput);
+
+      function updateCoverPreview(url) {
+        if (url) {
+          coverPreviewImg.src = url;
+          coverPreview.style.display = 'block';
+          coverPlaceholder.style.display = 'none';
+          coverHidden.value = url;
+        } else {
+          coverPreview.style.display = 'none';
+          coverPlaceholder.style.display = '';
+          coverHidden.value = '';
+        }
+      }
+
+      coverArea.addEventListener('click', function () { coverFileInput.click(); });
+      coverFileInput.addEventListener('change', async function (e) {
+        if (e.target.files.length > 0) {
+          var file = e.target.files[0];
+          if (!file.type.startsWith('image/')) return;
+          toast('正在上传封面...', 'info');
+          try {
+            var url = await BlogDB.uploadImage(file, 'covers');
+            updateCoverPreview(url);
+            toast('封面上传成功', 'success');
+          } catch (err) {
+            toast('封面上传失败: ' + err.message, 'error');
+          }
+        }
+      });
+      coverRemove.addEventListener('click', function (e) {
+        e.stopPropagation();
+        updateCoverPreview('');
+        coverFileInput.value = '';
+      });
+    }
+
+    // ---- 标签输入 ----
+    var tagWrapper = $moduleForm.querySelector('[data-tag-wrapper]');
+    if (tagWrapper) {
+      var tagHidden = $moduleForm.querySelector('[data-tags-hidden]');
+      var tagInput = $moduleForm.querySelector('[data-tag-input]');
+      var tags = tagHidden.value ? splitCommaValues(tagHidden.value) : [];
+
+      function syncTags() {
+        tagHidden.value = tags.join(', ');
+        var pills = tagWrapper.querySelectorAll('.tag-pill');
+        pills.forEach(function (p) { p.remove(); });
+        tags.forEach(function (tag, idx) {
+          var pill = document.createElement('span');
+          pill.className = 'tag-pill';
+          pill.innerHTML = esc(tag) + ' <span class="tag-remove" data-tag-idx="' + idx + '">&times;</span>';
+          tagWrapper.insertBefore(pill, tagInput);
+        });
+      }
+
+      tagWrapper.addEventListener('click', function (e) {
+        if (e.target.classList.contains('tag-remove')) {
+          var idx = parseInt(e.target.dataset.tagIdx, 10);
+          tags.splice(idx, 1);
+          syncTags();
+        }
+      });
+
+      tagInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          var val = tagInput.value.trim();
+          if (val && tags.indexOf(val) === -1) {
+            tags.push(val);
+            syncTags();
+          }
+          tagInput.value = '';
+        }
+      });
+    }
+  }
+
   function initStructuredContentEditor(moduleId) {
     if (moduleId !== 'page_sections' && moduleId !== 'profile_blocks') return;
 
@@ -1329,6 +1446,41 @@
       return '<div class="form-group' + (field.full ? ' is-full' : '') + '">' +
         '<label>' + esc(field.label) + (field.required ? ' *' : '') + '</label>' +
         '<select name="' + field.name + '"><option value="">请选择</option>' + optionHtml + '</select>' +
+      '</div>';
+    }
+
+    if (field.type === 'cover') {
+      var coverUrl = String(value || '');
+      return '<div class="form-group is-full">' +
+        '<label>' + esc(field.label) + '</label>' +
+        '<input type="hidden" name="' + field.name + '" value="' + esc(coverUrl) + '" data-cover-hidden>' +
+        '<div class="cover-upload-area" data-cover-area>' +
+          '<div class="cover-preview" data-cover-preview style="' + (coverUrl ? '' : 'display:none;') + '">' +
+            '<img data-cover-preview-img src="' + esc(coverUrl) + '" alt="封面预览">' +
+            '<button type="button" class="cover-remove-btn" data-cover-remove title="移除封面">&times;</button>' +
+          '</div>' +
+          '<div class="cover-placeholder" data-cover-placeholder style="' + (coverUrl ? 'display:none;' : '') + '">' +
+            '<i class="fas fa-image"></i>' +
+            '<span>点击上传封面图片</span>' +
+            '<small>建议尺寸 1200×630，支持 JPG/PNG/WebP</small>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }
+
+    if (field.type === 'tags') {
+      var tags = Array.isArray(value) ? value : [];
+      if (typeof value === 'string' && value) tags = splitCommaValues(value);
+      var tagPillsHtml = tags.map(function (tag, idx) {
+        return '<span class="tag-pill">' + esc(tag) + ' <span class="tag-remove" data-tag-idx="' + idx + '">&times;</span></span>';
+      }).join('');
+      return '<div class="form-group is-full">' +
+        '<label>' + esc(field.label) + '</label>' +
+        '<div class="tag-input-wrapper" data-tag-wrapper>' +
+          tagPillsHtml +
+          '<input type="text" class="tag-input" data-tag-input placeholder="输入后按回车添加">' +
+        '</div>' +
+        '<input type="hidden" name="' + field.name + '" value="' + esc(Array.isArray(value) ? value.join(', ') : (value || '')) + '" data-tags-hidden>' +
       '</div>';
     }
 
