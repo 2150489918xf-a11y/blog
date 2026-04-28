@@ -663,6 +663,95 @@
 
 .drop-zone i { font-size: 2rem; display: block; margin-bottom: 8px; }
 
+/* ---- 封面上传 ---- */
+.cover-upload-area {
+  border: 2px dashed rgba(169, 176, 211, 0.35);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: rgba(255, 255, 255, 0.4);
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cover-upload-area:hover {
+  border-color: var(--accent);
+  background: rgba(73, 177, 245, 0.06);
+}
+
+.cover-placeholder {
+  text-align: center;
+  color: var(--text-soft);
+  padding: 30px;
+}
+
+.cover-placeholder i {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 8px;
+  color: var(--accent);
+  opacity: 0.7;
+}
+
+.cover-placeholder small {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.cover-preview {
+  position: relative;
+  width: 100%;
+  max-height: 280px;
+}
+
+.cover-preview img {
+  width: 100%;
+  height: auto;
+  max-height: 280px;
+  object-fit: cover;
+  display: block;
+}
+
+.cover-remove-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.85);
+  color: #fff;
+  border: 0;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.cover-remove-btn:hover {
+  background: #ef4444;
+}
+
+.cover-url-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
+
+.cover-url-row input {
+  margin: 0;
+}
+
 /* ---- 标签输入 ---- */
 .tag-input-wrapper {
   display: flex;

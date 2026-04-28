@@ -293,6 +293,15 @@
   var $mdPreview = document.getElementById('mdPreview');
   var $dropZone = document.getElementById('dropZone');
   var $fileInput = document.getElementById('fileInput');
+  var $coverUploadArea = document.getElementById('coverUploadArea');
+  var $coverFileInput = document.getElementById('coverFileInput');
+  var $coverPreview = document.getElementById('coverPreview');
+  var $coverPreviewImg = document.getElementById('coverPreviewImg');
+  var $coverPlaceholder = document.getElementById('coverPlaceholder');
+  var $btnRemoveCover = document.getElementById('btnRemoveCover');
+  var $articleCoverUrl = document.getElementById('articleCoverUrl');
+  var $btnApplyCoverUrl = document.getElementById('btnApplyCoverUrl');
+  var $articleCover = document.getElementById('articleCover');
   var $tagInput = document.getElementById('tagInput');
   var $tagWrapper = document.getElementById('tagWrapper');
   var $toastContainer = document.getElementById('toastContainer');
@@ -1111,12 +1120,62 @@
 
     try {
       var url = await BlogDB.uploadImage(file);
-      $mdInput.value += '\n![' + file.name + '](' + url + ')\n';
+      // 插入到光标位置
+      var start = $mdInput.selectionStart;
+      var end = $mdInput.selectionEnd;
+      var text = $mdInput.value;
+      var mdImg = '\n![' + file.name + '](' + url + ')\n';
+      $mdInput.value = text.substring(0, start) + mdImg + text.substring(end);
+      $mdInput.focus();
+      $mdInput.setSelectionRange(start + mdImg.length, start + mdImg.length);
       updatePreview();
-      toast('上传成功', 'success');
+      toast('图片已插入正文', 'success');
     } catch (err) {
       toast('上传失败: ' + err.message, 'error');
     }
+  }
+
+  function updateCoverPreview(url) {
+    if (url) {
+      $coverPreviewImg.src = url;
+      $coverPreview.style.display = 'block';
+      $coverPlaceholder.style.display = 'none';
+      $articleCover.value = url;
+      $articleCoverUrl.value = url;
+    } else {
+      $coverPreview.style.display = 'none';
+      $coverPlaceholder.style.display = '';
+      $articleCover.value = '';
+      $articleCoverUrl.value = '';
+    }
+  }
+
+  async function uploadCoverFile(file) {
+    if (!file.type.startsWith('image/')) return;
+    toast('正在上传封面...', 'info');
+
+    try {
+      var url = await BlogDB.uploadImage(file, 'covers');
+      updateCoverPreview(url);
+      toast('封面上传成功', 'success');
+    } catch (err) {
+      toast('封面上传失败: ' + err.message, 'error');
+    }
+  }
+
+  function applyCoverUrl() {
+    var url = $articleCoverUrl.value.trim();
+    if (!url) {
+      toast('请输入封面图片 URL', 'error');
+      return;
+    }
+    updateCoverPreview(url);
+  }
+
+  function removeCover() {
+    updateCoverPreview('');
+    $coverFileInput.value = '';
+    toast('封面已移除');
   }
 
   async function loadArticleList() {
@@ -1162,6 +1221,7 @@
       $('articleCategory').value = article.category || '';
       $('articleReadTime').value = article.read_time || 5;
       $('articleCover').value = article.cover_url || '';
+      updateCoverPreview(article.cover_url || '');
       $mdInput.value = article.content || '';
       $('articlePublished').checked = article.published !== false;
       state.currentTags = article.tags || [];
@@ -1174,6 +1234,7 @@
       $('articleCategory').value = '';
       $('articleReadTime').value = 5;
       $('articleCover').value = '';
+      updateCoverPreview('');
       $mdInput.value = '';
       $('articlePublished').checked = true;
       document.getElementById('editorTitle').innerHTML = '<i class="fas fa-plus"></i> 新建文章';
@@ -1458,6 +1519,7 @@
       }
     });
 
+    // 正文插图上传
     $dropZone.addEventListener('click', function () { $fileInput.click(); });
     $fileInput.addEventListener('change', function (e) { Array.from(e.target.files).forEach(uploadFile); });
     $dropZone.addEventListener('dragover', function (e) { e.preventDefault(); $dropZone.classList.add('drag-over'); });
@@ -1466,6 +1528,22 @@
       e.preventDefault();
       $dropZone.classList.remove('drag-over');
       Array.from(e.dataTransfer.files).forEach(uploadFile);
+    });
+
+    // 封面上传
+    $coverUploadArea.addEventListener('click', function () { $coverFileInput.click(); });
+    $coverFileInput.addEventListener('change', function (e) {
+      if (e.target.files.length > 0) {
+        uploadCoverFile(e.target.files[0]);
+      }
+    });
+    $btnRemoveCover.addEventListener('click', function (e) {
+      e.stopPropagation();
+      removeCover();
+    });
+    $btnApplyCoverUrl.addEventListener('click', applyCoverUrl);
+    $articleCoverUrl.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); applyCoverUrl(); }
     });
 
     $mdInput.addEventListener('input', updatePreview);

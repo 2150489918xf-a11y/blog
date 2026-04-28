@@ -185,7 +185,7 @@
                 <textarea id="articleSummary" placeholder="简要描述文章核心内容..." style="min-height:80px;"></textarea>
               </div>
 
-              <div style="display:grid;grid-template-columns: 1fr 1fr 1fr; gap:20px; margin-bottom: 20px;">
+              <div style="display:grid;grid-template-columns: 1fr 1fr; gap:20px; margin-bottom: 20px;">
                 <div class="form-group">
                   <label>所属分类</label>
                   <input type="text" id="articleCategory" placeholder="如：学习笔记" list="categoryList">
@@ -194,9 +194,28 @@
                   <label>预计阅读 (分钟)</label>
                   <input type="number" id="articleReadTime" value="5">
                 </div>
-                <div class="form-group">
-                  <label>封面图 URL</label>
-                  <input type="url" id="articleCover" placeholder="https://...">
+              </div>
+
+              <!-- 封面图片 -->
+              <div class="form-group" style="margin-bottom: 20px;">
+                <label>封面图片</label>
+                <input type="hidden" id="articleCover" value="">
+                <div class="cover-upload-area" id="coverUploadArea">
+                  <div class="cover-preview" id="coverPreview" style="display:none;">
+                    <img id="coverPreviewImg" src="" alt="封面预览">
+                    <button type="button" class="cover-remove-btn" id="btnRemoveCover" title="移除封面">&times;</button>
+                  </div>
+                  <div class="cover-placeholder" id="coverPlaceholder">
+                    <i class="fas fa-image"></i>
+                    <span>点击上传封面图片</span>
+                    <small>建议尺寸 1200×630，支持 JPG/PNG/WebP</small>
+                  </div>
+                  <input type="file" id="coverFileInput" accept="image/*" style="display:none;">
+                </div>
+                <div class="cover-url-row">
+                  <span>或输入图片 URL：</span>
+                  <input type="url" id="articleCoverUrl" placeholder="https://..." style="flex:1;">
+                  <button type="button" class="button-primary" id="btnApplyCoverUrl" style="padding:6px 14px; font-size:0.85rem;">应用</button>
                 </div>
               </div>
 
@@ -207,10 +226,14 @@
                 </div>
               </div>
 
-              <div class="drop-zone" id="dropZone">
-                <i class="fas fa-cloud-arrow-up"></i>
-                <span>点击或拖拽图片上传至云端存储</span>
-                <input type="file" id="fileInput" accept="image/*" style="display:none;" multiple>
+              <!-- 正文插图 -->
+              <div class="form-group" style="margin-bottom: 20px;">
+                <label>正文插图 <span style="font-weight:400;color:var(--text-soft);">（上传后自动插入到光标位置）</span></label>
+                <div class="drop-zone" id="dropZone">
+                  <i class="fas fa-cloud-arrow-up"></i>
+                  <span>点击或拖拽图片上传，支持 Ctrl+V 粘贴</span>
+                  <input type="file" id="fileInput" accept="image/*" style="display:none;" multiple>
+                </div>
               </div>
 
               <div class="editor-container" style="margin-top: 20px; border: 1px solid rgba(169, 176, 211, 0.3); border-radius: 12px; overflow: hidden; background: rgba(255,255,255,0.5);">
