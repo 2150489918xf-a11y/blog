@@ -858,39 +858,6 @@ function initClock() {
   window.setInterval(renderClock, 1000);
 }
 
-function initDropdowns() {
-  const dropdowns = document.querySelectorAll("[data-nav-dropdown]");
-
-  dropdowns.forEach((dropdown) => {
-    const button = dropdown.querySelector("[data-dropdown-button]");
-    if (!button) {
-      return;
-    }
-
-    button.addEventListener("click", () => {
-      const willOpen = !dropdown.classList.contains("is-open");
-      dropdowns.forEach((item) => {
-        item.classList.remove("is-open");
-        item.querySelector("[data-dropdown-button]")?.setAttribute("aria-expanded", "false");
-      });
-
-      if (willOpen) {
-        dropdown.classList.add("is-open");
-        button.setAttribute("aria-expanded", "true");
-      }
-    });
-  });
-
-  document.addEventListener("click", (event) => {
-    dropdowns.forEach((dropdown) => {
-      if (!dropdown.contains(event.target)) {
-        dropdown.classList.remove("is-open");
-        dropdown.querySelector("[data-dropdown-button]")?.setAttribute("aria-expanded", "false");
-      }
-    });
-  });
-}
-
 function initBackToTop() {
   const button = document.getElementById("backToTop");
   if (!button) {
@@ -1672,7 +1639,6 @@ async function boot() {
   await applyRemotePageConfiguration();
   markCurrentPage();
   initClock();
-  initDropdowns();
   initBackToTop();
   renderHomeArticles();
   renderArticleCatalog();

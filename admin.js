@@ -340,10 +340,6 @@
       .filter(Boolean);
   }
 
-  function joinArray(value) {
-    return Array.isArray(value) ? value.join(', ') : '';
-  }
-
   function formatJsonText(value) {
     if (value === null || value === undefined || value === '') return '';
     if (typeof value === 'object') {
@@ -376,14 +372,6 @@
     return function () {
       return values.map(function (value) {
         return { label: value, value: value };
-      });
-    };
-  }
-
-  function mappedOptions(map) {
-    return function () {
-      return Object.keys(map).map(function (key) {
-        return { label: map[key], value: key };
       });
     };
   }

@@ -59,25 +59,6 @@
   align-items: center;
 }
 
-.admin-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 700;
-  font-size: 1.1rem;
-  text-decoration: none;
-  color: var(--text-main);
-}
-
-.admin-brand i { color: var(--accent); font-size: 1.3rem; }
-
-.admin-user {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.user-email { color: var(--text-soft); font-size: 0.86rem; }
 
 /* ---- 卡片容器 ---- */
 .admin-card {
@@ -324,30 +305,6 @@
 }
 .btn-primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
 
-.btn-danger {
-  background: linear-gradient(135deg, #ef4444, #f87171);
-  color: #fff;
-}
-.btn-danger:hover { filter: brightness(1.08); }
-
-.btn-ghost {
-  background: transparent;
-  color: var(--text-soft);
-}
-.btn-ghost:hover { background: rgba(73, 177, 245, 0.08); color: var(--accent); }
-
-.btn-outline {
-  background: transparent;
-  border: 1px solid rgba(73, 177, 245, 0.3);
-  color: var(--accent);
-}
-.btn-outline:hover {
-  background: rgba(73, 177, 245, 0.08);
-  border-color: var(--accent);
-}
-
-.btn-sm { padding: 5px 14px; font-size: 0.82rem; }
-
 /* ---- 表单 ---- */
 .form-group {
   margin-bottom: 16px;
@@ -429,7 +386,6 @@
   line-height: 1.6;
 }
 
-.structured-editor-mode,
 .structured-editor-meta label {
   display: grid;
   gap: 6px;
@@ -458,8 +414,7 @@
   background: rgba(255, 255, 255, 0.72);
 }
 
-.structured-editor-row-inline,
-.structured-editor-row-single {
+.structured-editor-row-inline {
   padding: 0;
   border: 0;
   background: transparent;
@@ -476,10 +431,6 @@
 
 .structured-editor-grid-2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.structured-editor-grid-3 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .structured-editor-row label {
@@ -592,57 +543,6 @@
 
 .slide-fields-grid .is-full {
   grid-column: 1 / -1;
-}
-
-/* 轮播图片上传区 */
-.slide-image-upload {
-  border: 2px dashed rgba(169,176,211,0.35);
-  border-radius: 12px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: all 0.2s;
-  background: rgba(255,255,255,0.4);
-  min-height: 90px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.slide-image-upload:hover {
-  border-color: var(--accent);
-  background: rgba(73,177,245,0.05);
-}
-
-.slide-image-placeholder {
-  text-align: center;
-  color: var(--text-soft);
-  padding: 20px;
-}
-
-.slide-image-placeholder i {
-  font-size: 1.6rem;
-  display: block;
-  margin-bottom: 6px;
-  color: var(--accent);
-  opacity: 0.6;
-}
-
-.slide-image-placeholder span {
-  font-size: 0.84rem;
-}
-
-.slide-image-preview {
-  position: relative;
-  width: 100%;
-  max-height: 140px;
-}
-
-.slide-image-preview img {
-  width: 100%;
-  height: auto;
-  max-height: 140px;
-  object-fit: cover;
-  display: block;
 }
 
 /* 卡片底部 */
@@ -1055,18 +955,6 @@
 @media (max-width: 640px) {
   .admin-module-nav {
     grid-template-columns: 1fr;
-  }
-}
-
-@keyframes toastIn {
-  from {
-    opacity: 0;
-    transform: translateY(-8px) translateX(8px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) translateX(0);
   }
 }
 
