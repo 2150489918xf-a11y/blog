@@ -7,8 +7,8 @@
 
 (function () {
   // ============ 配置（部署前替换为你的 Supabase 项目信息）============
-  const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
-  const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+  const SUPABASE_URL = 'https://rgeqokmsbtsqmbtocnij.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_zdAE4Lu3bP2KH7tlJQ5Lcg_3up3vQad';
 
   // ============ 初始化 ============
   let supabase = null;
