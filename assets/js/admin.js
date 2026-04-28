@@ -1,5 +1,29 @@
+/**
+ * 管理后台 — CMS 面板
+ * ===================
+ * 职责：提供完整的内容管理系统，包括文章/项目/资源/设置等模块的增删改查。
+ *
+ * 架构：
+ *   - MODULES 对象定义所有管理模块的配置（字段、列表、CRUD 回调）
+ *   - 通用表单构建器 buildFieldHtml() 根据字段配置自动生成表单
+ *   - 通用列表渲染器 loadGenericList() 根据列配置自动生成表格
+ *   - 结构化内容编辑器 initStructuredContentEditor() 为页面区块/简历提供可视编辑
+ *
+ * 认证：
+ *   - 使用 Supabase Auth 邮箱 + 密码登录
+ *   - 登录状态持久化（localStorage session）
+ *
+ * 模块切换：
+ *   左侧导航按钮切换 activeModule → syncModuleView() → 显示对应列表/编辑器
+ */
+
 (function () {
+
+  // ================================================================
+  //  1. 模块定义 — 每个管理模块的字段、列表列、CRUD 回调
+  // ================================================================
   var MODULES = {
+    // ----- 文章模块（特殊：使用专属编辑器，不走通用表单）-----
     articles: {
       type: 'article',
       kicker: 'Content Manager',
@@ -260,6 +284,9 @@
     },
   };
 
+  // ================================================================
+  //  2. 全局状态
+  // ================================================================
   var state = {
     activeModule: 'articles',
     isEditingArticle: false,
@@ -318,6 +345,11 @@
     return document.getElementById(id);
   }
 
+  // ================================================================
+  //  3. 工具函数
+  // ================================================================
+
+  /** HTML 转义，防止 XSS */
   function esc(s) {
     if (!s && s !== 0) return '';
     return String(s)
@@ -433,6 +465,11 @@
     return 'main';
   }
 
+  // ================================================================
+  //  4. 结构化内容编辑器 — 页面区块 & 简历区块的可视编辑
+  // ================================================================
+
+  /** 根据内容数据自动检测内容类型（slides/cards/stats/...） */
   function detectStructuredType(moduleId, content) {
     var normalized = content || {};
     var sectionKeyNode = $moduleForm ? $moduleForm.querySelector('[name="section_key"]') : null;
@@ -941,6 +978,10 @@
     if (type === 'prose') content.paragraphs.splice(index, 1);
   }
 
+  // ================================================================
+  //  5. 通用表单组件 — Slug 自动生成 / 封面上传 / 标签输入 / Markdown 编辑器
+  // ================================================================
+
   function initGenericWidgets(moduleId) {
     var module = MODULES[moduleId];
     if (!module || !module.fields) return;
@@ -1142,6 +1183,8 @@
 
   // ---- 轮播编辑器辅助函数 ----
 
+  // ----- 轮播自动填充辅助函数 -----
+
   function autoFillSlideFromArticle(row, article) {
     var setVal = function (field, value) {
       var el = row.querySelector('[data-field="' + field + '"]');
@@ -1212,6 +1255,8 @@
       console.warn('[SlideEditor] 加载内容列表失败:', err);
     }
   }
+
+  // ----- 结构化编辑器初始化（事件委托 + 渲染）-----
 
   function initStructuredContentEditor(moduleId) {
     if (moduleId !== 'page_sections' && moduleId !== 'profile_blocks') return;
@@ -1413,6 +1458,10 @@
   }
 
   // ============ 编辑器工具栏与粘贴功能 ============
+  // ================================================================
+  //  11. 文章 Markdown 编辑器（全局函数，供 HTML 内联 onclick 调用）
+  // ================================================================
+
   window._insertMD = function (prefix, suffix) {
     suffix = suffix || '';
     var start = $mdInput.selectionStart;
@@ -1442,6 +1491,10 @@
   function currentModule() {
     return MODULES[state.activeModule] || MODULES.articles;
   }
+
+  // ================================================================
+  //  6. 模块视图切换
+  // ================================================================
 
   function syncModuleView() {
     var module = currentModule();
@@ -1537,6 +1590,10 @@
     $coverFileInput.value = '';
     toast('封面已移除');
   }
+
+  // ================================================================
+  //  7. 文章管理（专属编辑器）
+  // ================================================================
 
   async function loadArticleList() {
     $articleListContainer.innerHTML = '<p style="color:var(--text-soft);text-align:center;padding:60px;">加载中...</p>';
@@ -1665,6 +1722,10 @@
     return typeof field.options === 'function' ? field.options() : field.options;
   }
 
+  // ================================================================
+  //  8. 通用表单构建器 — 根据 field.type 生成对应的 HTML
+  // ================================================================
+
   function buildFieldHtml(field, value, options) {
     if (field.type === 'checkbox') {
       return '<div class="form-group' + (field.full ? ' is-full' : '') + '">' +
@@ -1777,6 +1838,8 @@
     '</div>';
   }
 
+  // ----- 渲染通用表单 + 处理表单提交 -----
+
   async function renderGenericForm(moduleId, record) {
     var module = MODULES[moduleId];
     var parts = [];
@@ -1828,6 +1891,10 @@
 
     return payload;
   }
+
+  // ================================================================
+  //  9. 通用列表渲染器 — 根据 module.columns 生成表格
+  // ================================================================
 
   async function loadGenericList(moduleId) {
     var module = MODULES[moduleId];

@@ -15,7 +15,8 @@
       "Bash(python3 -c ':*)",
       "Bash(curl:*)",
       "Bash(mkdir -p _archive)",
-      "Bash(mv register.html _archive/)"
+      "Bash(mv register.html _archive/)",
+      "Bash(sed:*)"
     ]
   }
 }
