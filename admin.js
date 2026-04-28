@@ -626,16 +626,48 @@
 
     if (type === 'slides') {
       return content.slides.map(function (item, index) {
-        return '<div class="structured-editor-row" data-structured-row>' +
-          '<div class="structured-editor-grid structured-editor-grid-3">' +
-            '<input type="text" data-field="chip" data-structured-input value="' + esc(item.chip || '') + '" placeholder="标签">' +
-            '<input type="text" data-field="date" data-structured-input value="' + esc(item.date || '') + '" placeholder="日期">' +
+        var sourceType = (item.source === 'project') ? 'project' : 'article';
+        var hasImage = !!item.imageUrl;
+        return '<div class="structured-editor-row slide-editor-card" data-structured-row data-slide-index="' + index + '">' +
+          '<div class="slide-card-header">' +
+            '<span class="slide-card-index">轮播 #' + (index + 1) + '</span>' +
+          '</div>' +
+          '<div class="slide-source-bar">' +
+            '<select data-slide-source-type>' +
+              '<option value="article"' + (sourceType === 'article' ? ' selected' : '') + '>从文章选取</option>' +
+              '<option value="project"' + (sourceType === 'project' ? ' selected' : '') + '>从项目选取</option>' +
+            '</select>' +
+            '<select class="slide-ref-select" data-slide-source-ref>' +
+              '<option value="">— 选择内容 —</option>' +
+            '</select>' +
+          '</div>' +
+          '<div class="slide-image-upload" data-slide-upload data-slide-upload-index="' + index + '">' +
+            '<input type="hidden" data-field="imageUrl" data-structured-input value="' + esc(item.imageUrl || '') + '">' +
+            '<div class="slide-image-preview" data-slide-preview style="display:' + (hasImage ? '' : 'none') + ';">' +
+              '<img data-slide-preview-img src="' + esc(item.imageUrl || '') + '" alt="">' +
+              '<button type="button" class="cover-remove-btn" data-slide-remove-image>&times;</button>' +
+            '</div>' +
+            '<div class="slide-image-placeholder" data-slide-placeholder style="display:' + (hasImage ? 'none' : '') + ';">' +
+              '<i class="fas fa-image"></i>' +
+              '<span>点击上传轮播配图</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="slide-fields-grid">' +
+            '<input type="text" data-field="title" data-structured-input value="' + esc(item.title || '') + '" placeholder="标题 *">' +
+            '<input type="text" data-field="chip" data-structured-input value="' + esc(item.chip || '') + '" placeholder="标签 (chip)">' +
+            '<select data-field="visualClass" data-structured-input>' +
+              '<option value="">默认自动</option>' +
+              '<option value="visual-red"' + (item.visualClass === 'visual-red' ? ' selected' : '') + '>红色</option>' +
+              '<option value="visual-blue"' + (item.visualClass === 'visual-blue' ? ' selected' : '') + '>蓝色</option>' +
+              '<option value="visual-green"' + (item.visualClass === 'visual-green' ? ' selected' : '') + '>绿色</option>' +
+            '</select>' +
+            '<input type="text" data-field="date" data-structured-input value="' + esc(item.date || '') + '" placeholder="日期 (如 2026-04)">' +
             '<input type="text" data-field="readTime" data-structured-input value="' + esc(item.readTime || '') + '" placeholder="阅读时长">' +
-            '<input type="text" data-field="title" data-structured-input value="' + esc(item.title || '') + '" placeholder="标题">' +
-            '<input type="text" data-field="visualClass" data-structured-input value="' + esc(item.visualClass || '') + '" placeholder="视觉类名，如 visual-blue">' +
-            '<input type="text" data-field="imageUrl" data-structured-input value="' + esc(item.imageUrl || '') + '" placeholder="图片 URL（可选）">' +
             '<textarea data-field="summary" data-structured-input class="is-full" placeholder="摘要">' + esc(item.summary || '') + '</textarea>' +
-          '</div>' + removeButton(index) +
+          '</div>' +
+          '<div class="slide-card-footer">' +
+            removeButton(index) +
+          '</div>' +
         '</div>';
       }).join('');
     }
@@ -1006,6 +1038,93 @@
     }
   }
 
+  // ---- 轮播编辑器辅助函数 ----
+
+  function autoFillSlideFromArticle(row, article) {
+    var setVal = function (field, value) {
+      var el = row.querySelector('[data-field="' + field + '"]');
+      if (el) { el.value = value || ''; el.dispatchEvent(new Event('input', { bubbles: true })); }
+    };
+    setVal('title', article.title);
+    setVal('summary', article.summary || '');
+    setVal('imageUrl', article.cover_url || '');
+    setVal('chip', article.category || '');
+    setVal('readTime', article.read_time || '');
+    if (article.created_at) {
+      setVal('date', article.created_at.slice(0, 10));
+    }
+    // 更新图片预览
+    var preview = row.querySelector('[data-slide-preview]');
+    var previewImg = row.querySelector('[data-slide-preview-img]');
+    var placeholder = row.querySelector('[data-slide-placeholder]');
+    if (article.cover_url) {
+      if (previewImg) previewImg.src = article.cover_url;
+      if (preview) preview.style.display = '';
+      if (placeholder) placeholder.style.display = 'none';
+    }
+  }
+
+  function autoFillSlideFromProject(row, project) {
+    var setVal = function (field, value) {
+      var el = row.querySelector('[data-field="' + field + '"]');
+      if (el) { el.value = value || ''; el.dispatchEvent(new Event('input', { bubbles: true })); }
+    };
+    setVal('title', project.title);
+    setVal('summary', project.description || project.summary || '');
+    setVal('imageUrl', project.cover_url || '');
+    setVal('chip', Array.isArray(project.tech_tags) && project.tech_tags.length ? project.tech_tags[0] : '');
+    if (project.created_at) {
+      setVal('date', project.created_at.slice(0, 10));
+    }
+    // 更新图片预览
+    var preview = row.querySelector('[data-slide-preview]');
+    var previewImg = row.querySelector('[data-slide-preview-img]');
+    var placeholder = row.querySelector('[data-slide-placeholder]');
+    if (project.cover_url) {
+      if (previewImg) previewImg.src = project.cover_url;
+      if (preview) preview.style.display = '';
+      if (placeholder) placeholder.style.display = 'none';
+    }
+  }
+
+  async function populateSlideSourceDropdowns(shell) {
+    if (shell.dataset.structuredType !== 'slides') return;
+    try {
+      var articles = await BlogDB.getPublishedArticles();
+      var projects = await BlogDB.getPublishedProjects();
+      shell.dataset.articleOptionsMap = JSON.stringify((articles || []).map(function (a) {
+        return { id: a.id, title: a.title };
+      }));
+      shell.dataset.projectOptionsMap = JSON.stringify((projects || []).map(function (p) {
+        return { id: p.id, title: p.title };
+      }));
+      var articleOptionsHtml = '<option value="">选择文章...</option>' + (articles || []).map(function (a) {
+        return '<option value="' + a.id + '">' + esc(a.title) + '</option>';
+      }).join('');
+      var projectOptionsHtml = '<option value="">选择项目...</option>' + (projects || []).map(function (p) {
+        return '<option value="' + p.id + '">' + esc(p.title) + '</option>';
+      }).join('');
+      // 缓存 HTML 用于 source-type 切换
+      shell.dataset.articleOptionsHtml = articleOptionsHtml;
+      shell.dataset.projectOptionsHtml = projectOptionsHtml;
+
+      var refSelects = shell.querySelectorAll('[data-slide-source-ref]');
+      refSelects.forEach(function (select) {
+        var row = select.closest('[data-structured-row]');
+        var sourceType = row.querySelector('[data-slide-source-type]').value;
+        if (sourceType === 'article') {
+          select.innerHTML = articleOptionsHtml;
+          select.style.display = '';
+        } else if (sourceType === 'project') {
+          select.innerHTML = projectOptionsHtml;
+          select.style.display = '';
+        }
+      });
+    } catch (err) {
+      console.warn('[SlideEditor] 加载内容列表失败:', err);
+    }
+  }
+
   function initStructuredContentEditor(moduleId) {
     if (moduleId !== 'page_sections' && moduleId !== 'profile_blocks') return;
 
@@ -1019,6 +1138,13 @@
     shell.className = 'form-group is-full structured-editor-shell';
     anchor.insertAdjacentElement('afterend', shell);
 
+    // 共享文件输入（不被 renderEditor 内层 HTML 重置影响）
+    var slideFileInput = document.createElement('input');
+    slideFileInput.type = 'file';
+    slideFileInput.accept = 'image/*';
+    slideFileInput.style.display = 'none';
+    shell.appendChild(slideFileInput);
+
     function renderEditor(forcedType) {
       var parsed = parseContentObject(contentField.value);
       var type = forcedType || detectStructuredType(moduleId, parsed);
@@ -1030,6 +1156,11 @@
 
       shell.dataset.structuredType = type;
       shell.innerHTML = buildStructuredEditorMarkup(moduleId, type, normalizeStructuredContent(type, parseContentObject(contentField.value), moduleId));
+
+      // 轮播模式：加载文章/项目下拉数据
+      if (type === 'slides') {
+        populateSlideSourceDropdowns(shell);
+      }
     }
 
     function syncToTextarea() {
@@ -1049,6 +1180,38 @@
         return;
       }
 
+      // 轮播：来源类型切换（文章/项目）
+      if (target.matches('[data-slide-source-type]')) {
+        var srcRow = target.closest('[data-structured-row]');
+        var refSelect = srcRow.querySelector('[data-slide-source-ref]');
+        if (target.value === 'project') {
+          refSelect.innerHTML = shell.dataset.projectOptionsHtml || '<option value="">选择项目...</option>';
+        } else {
+          refSelect.innerHTML = shell.dataset.articleOptionsHtml || '<option value="">选择文章...</option>';
+        }
+        refSelect.value = '';
+        return;
+      }
+
+      // 轮播：选择文章/项目后自动填充
+      if (target.matches('[data-slide-source-ref]')) {
+        var refRow = target.closest('[data-structured-row]');
+        var sourceType = refRow.querySelector('[data-slide-source-type]').value;
+        if (!target.value) return;
+        if (sourceType === 'article') {
+          BlogDB.getPublishedArticles().then(function (articles) {
+            var article = (articles || []).find(function (a) { return a.id == target.value; });
+            if (article) { autoFillSlideFromArticle(refRow, article); syncToTextarea(); }
+          });
+        } else if (sourceType === 'project') {
+          BlogDB.getPublishedProjects().then(function (projects) {
+            var project = (projects || []).find(function (p) { return p.id == target.value; });
+            if (project) { autoFillSlideFromProject(refRow, project); syncToTextarea(); }
+          });
+        }
+        return;
+      }
+
       if (target.matches('[data-structured-input], [data-structured-placement]')) {
         syncToTextarea();
       }
@@ -1061,6 +1224,30 @@
     });
 
     shell.addEventListener('click', function (event) {
+      // 轮播：点击图片上传区
+      var uploadZone = event.target.closest('[data-slide-upload]');
+      if (uploadZone && !event.target.closest('[data-slide-remove-image]')) {
+        var slideIdx = uploadZone.getAttribute('data-slide-upload-index');
+        shell.dataset.uploadingSlide = slideIdx;
+        slideFileInput.click();
+        return;
+      }
+
+      // 轮播：移除图片
+      var removeImgBtn = event.target.closest('[data-slide-remove-image]');
+      if (removeImgBtn) {
+        var imgRow = removeImgBtn.closest('[data-structured-row]');
+        var hiddenInput = imgRow ? imgRow.querySelector('[data-field="imageUrl"]') : null;
+        var previewCtn = imgRow ? imgRow.querySelector('[data-slide-preview]') : null;
+        var placeholderEl = imgRow ? imgRow.querySelector('[data-slide-placeholder]') : null;
+        if (hiddenInput) hiddenInput.value = '';
+        if (previewCtn) previewCtn.style.display = 'none';
+        if (placeholderEl) placeholderEl.style.display = '';
+        slideFileInput.value = '';
+        syncToTextarea();
+        return;
+      }
+
       var addButton = event.target.closest('[data-structured-add]');
       var removeButton = event.target.closest('[data-structured-remove]');
       var currentType = shell.dataset.structuredType || 'custom';
@@ -1088,6 +1275,38 @@
           renderEditor();
         }
       });
+    });
+
+    // 轮播图片上传处理
+    slideFileInput.addEventListener('change', async function () {
+      var slideIdx = shell.dataset.uploadingSlide;
+      if (!slideFileInput.files || !slideFileInput.files.length) return;
+
+      var file = slideFileInput.files[0];
+      if (!file.type.startsWith('image/')) return;
+
+      toast('正在上传轮播图片...', 'info');
+      try {
+        var url = await BlogDB.uploadImage(file, 'covers');
+        // 更新对应 slide 的 DOM
+        var row = shell.querySelector('[data-slide-index="' + slideIdx + '"]');
+        if (row) {
+          var hiddenInput = row.querySelector('[data-field="imageUrl"]');
+          var previewCtn = row.querySelector('[data-slide-preview]');
+          var previewImg = row.querySelector('[data-slide-preview-img]');
+          var placeholderEl = row.querySelector('[data-slide-placeholder]');
+          if (hiddenInput) { hiddenInput.value = url; hiddenInput.dispatchEvent(new Event('input', { bubbles: true })); }
+          if (previewImg) previewImg.src = url;
+          if (previewCtn) previewCtn.style.display = '';
+          if (placeholderEl) placeholderEl.style.display = 'none';
+        }
+        toast('图片上传成功', 'success');
+      } catch (err) {
+        toast('图片上传失败: ' + err.message, 'error');
+      } finally {
+        slideFileInput.value = '';
+        delete shell.dataset.uploadingSlide;
+      }
     });
 
     renderEditor();
