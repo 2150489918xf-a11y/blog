@@ -196,29 +196,29 @@
     },
     page_sections: {
       type: 'generic',
-      kicker: 'Page Sections',
-      title: '页面区块',
-      description: '管理首页、关于页、资源页、联系页的展示区块，支持轮播、卡片、统计等内容类型，配备可视化编辑器。',
-      actionLabel: '新建区块',
+      kicker: '内容管理',
+      title: '页面内容',
+      description: '管理网站上各个页面的内容模块，比如首页轮播图、文章列表、作者卡片等，下方有可视化编辑器帮助你配置。',
+      actionLabel: '新建内容模块',
       implemented: true,
-      listTitle: '页面区块列表',
+      listTitle: '内容模块列表',
       columns: [
-        { key: 'page_key', label: '页面' },
-        { key: 'section_key', label: '区块键' },
+        { key: 'page_key', label: '所在页面', format: pageLabel },
+        { key: 'section_key', label: '模块类型', format: sectionLabel },
         { key: 'title', label: '标题' },
         { key: 'description', label: '描述', format: function (v) { return (v || '').slice(0, 30) + ((v || '').length > 30 ? '...' : '') || '—'; } },
         { key: 'sort_order', label: '排序' },
         { key: 'published', label: '显示', format: function (value) { return value ? '显示' : '隐藏'; } }
       ],
       fields: [
-        { name: 'page_key', label: '页面键名', type: 'select', required: true, options: staticOptions(['home', 'resume', 'resources', 'contact', 'settings']) },
-        { name: 'section_key', label: '区块键名', type: 'text', required: true, placeholder: 'hero / carousel / author_card / note_board' },
-        { name: 'eyebrow', label: '眉标题', type: 'text', placeholder: '如：WELCOME / LATEST' },
-        { name: 'title', label: '标题', type: 'text', placeholder: '如：欢迎来到我的站点' },
-        { name: 'description', label: '描述', type: 'textarea', full: true, placeholder: '描述这个区块的用途，会显示在部分区块中' },
-        { name: 'content', label: '区块内容', type: 'textarea', full: true, format: formatJsonText, parse: parseMaybeJson, placeholder: '{"slides":[...]} 或 {"stats":[...]} — 保存时会自动从可视化编辑器回写' },
-        { name: 'sort_order', label: '排序', type: 'number', defaultValue: 0 },
-        { name: 'published', label: '显示该区块', type: 'checkbox', defaultValue: true }
+        { name: 'page_key', label: '展示在哪个页面', type: 'select', required: true, options: pageOptions },
+        { name: 'section_key', label: '内容类型', type: 'select', required: true, options: sectionOptions },
+        { name: 'title', label: '模块标题', type: 'text', placeholder: '如：精选内容、最新文章' },
+        { name: 'eyebrow', label: '标签文字', type: 'text', placeholder: '如：精选 / LATEST（显示在标题上方的小字）' },
+        { name: 'description', label: '简单说明', type: 'textarea', full: true, placeholder: '简单描述这个模块的用途（部分位置会显示这段文字）' },
+        { name: 'content', label: '内容配置', type: 'textarea', full: true, format: formatJsonText, parse: parseMaybeJson, placeholder: '下方可视化编辑器会自动填充此区域，无需手动填写' },
+        { name: 'sort_order', label: '显示顺序', type: 'number', defaultValue: 0 },
+        { name: 'published', label: '在网站上显示', type: 'checkbox', defaultValue: true }
       ],
       loadRecords: function () { return BlogDB.getAllPageSections(); },
       createRecord: function (payload) { return BlogDB.createPageSection(payload); },
@@ -378,6 +378,27 @@
         return { label: value, value: value };
       });
     };
+  }
+
+  function mappedOptions(map) {
+    return function () {
+      return Object.keys(map).map(function (key) {
+        return { label: map[key], value: key };
+      });
+    };
+  }
+
+  var pageOptions = mappedOptions({ home: '首页', resume: '关于页', resources: '资源导航', contact: '联系页' });
+  var sectionOptions = mappedOptions({ hero_carousel: '首页轮播图', note_board: '首页卡片组', article_feed: '文章列表', author_card: '作者统计卡片' });
+
+  function pageLabel(value) {
+    var map = { home: '首页', resume: '关于页', resources: '资源导航', contact: '联系页', settings: '站点设置' };
+    return map[value] || value || '—';
+  }
+
+  function sectionLabel(value) {
+    var map = { hero_carousel: '首页轮播', note_board: '首页卡片组', article_feed: '文章列表', author_card: '作者卡片', usage_tips_card: '使用提示', contact_info_card: '联系方式', page_note_card: '页面说明' };
+    return map[value] || value || '—';
   }
 
   function parseContentObject(value) {
@@ -771,17 +792,17 @@
     return '<div class="structured-editor-card">' +
       '<div class="structured-editor-head">' +
         '<div>' +
-          '<strong>可视化内容编辑</strong>' +
-          '<p>常用内容会自动同步回下方 JSON 字段，复杂场景仍可手动微调。</p>' +
+          '<strong>内容编辑器</strong>' +
+          '<p>在下方可视化编辑内容，保存时会自动同步。</p>' +
         '</div>' +
-        '<label class="structured-editor-mode">编辑模式<select data-structured-type>' + buildStructuredTypeOptions(moduleId, type) + '</select></label>' +
+        '<select data-structured-type hidden>' + buildStructuredTypeOptions(moduleId, type) + '</select>' +
       '</div>' +
       (showPlacement
         ? '<div class="structured-editor-meta"><label>展示位置<select data-structured-placement><option value="main"' + (placementValue === 'main' ? ' selected' : '') + '>主栏</option><option value="aside"' + (placementValue === 'aside' ? ' selected' : '') + '>侧栏</option></select></label></div>'
         : '') +
       '<div class="structured-editor-body">' + buildStructuredRowsMarkup(type, content) + '</div>' +
       (supportsStructuredAdd(type)
-        ? '<div class="structured-editor-actions"><button class="btn btn-secondary" type="button" data-structured-add="1">' + addLabelMap[type] + '</button><span class="structured-editor-tip">保存前会自动写回 content JSON。</span></div>'
+        ? '<div class="structured-editor-actions"><button class="btn btn-secondary" type="button" data-structured-add="1">' + addLabelMap[type] + '</button><span class="structured-editor-tip">内容会自动同步保存</span></div>'
         : '<div class="structured-editor-actions"><span class="structured-editor-tip">保存前会自动写回 content JSON。</span></div>') +
     '</div>';
   }
