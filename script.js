@@ -253,6 +253,24 @@ function applySiteSettings(settings) {
       document.getElementById("resumeProfileAvatar").textContent = profileAvatarText;
     }
   }
+
+  // 联系方式（联系页 + 首页社交链接统一使用 site_settings）
+  var contactEl = document.getElementById("contactEmail");
+  if (contactEl) {
+    contactEl.textContent = getSettingValue(settings, "contact_email", contactEl.textContent);
+  }
+  var githubEl = document.getElementById("contactGithub");
+  if (githubEl) {
+    githubEl.textContent = getSettingValue(settings, "contact_github", githubEl.textContent);
+  }
+  var schoolEl = document.getElementById("contactSchool");
+  if (schoolEl) {
+    schoolEl.textContent = getSettingValue(settings, "contact_school", schoolEl.textContent);
+  }
+  var majorEl = document.getElementById("contactMajor");
+  if (majorEl) {
+    majorEl.textContent = getSettingValue(settings, "contact_major", majorEl.textContent);
+  }
 }
 
 function renderNavigationMenus(items) {
