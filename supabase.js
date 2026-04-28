@@ -300,15 +300,16 @@
   // ============ 分类 CRUD ============
 
   async function getCategories() {
-    const client = getClient();
-    if (!client) return [];
+    const cacheTime = 10 * 60 * 1000;
+    const cached = readCache('categories', cacheTime);
+    if (cached) return cached;
 
-    const { data, error } = await client
-      .from('categories')
-      .select('*')
-      .order('article_count', { ascending: false });
-
-    if (error) { console.error('[BlogDB]', error.message); return []; }
+    const data = await listRecords('categories', {
+      orderBy: 'article_count',
+      ascending: false,
+      emptyValue: [],
+    });
+    writeCache('categories', data);
     return data;
   }
 
@@ -484,15 +485,21 @@
   // ============ 站点配置 CRUD ============
 
   async function getSiteSettings() {
+    const cacheTime = 10 * 60 * 1000;
+    const cached = readCache('site_settings_map', cacheTime);
+    if (cached) return cached;
+
     const rows = await listRecords('site_settings', {
       orderBy: 'setting_key',
       emptyValue: [],
     });
 
-    return rows.reduce((acc, row) => {
+    const map = rows.reduce((acc, row) => {
       acc[row.setting_key] = row.setting_value;
       return acc;
     }, {});
+    writeCache('site_settings_map', map);
+    return map;
   }
 
   async function getAllSiteSettings() {
@@ -527,11 +534,17 @@
   }
 
   async function getNavigationItems() {
-    return listRecords('navigation_items', {
+    const cacheTime = 10 * 60 * 1000;
+    const cached = readCache('navigation_items_visible', cacheTime);
+    if (cached) return cached;
+
+    const data = await listRecords('navigation_items', {
       filters: [{ column: 'visible', operator: 'eq', value: true }],
       orderBy: 'sort_order',
       emptyValue: [],
     });
+    writeCache('navigation_items_visible', data);
+    return data;
   }
 
   async function getAllNavigationItems() {
@@ -561,15 +574,22 @@
   }
 
   async function getPageSections(pageKey) {
-    const filters = [];
+    var cacheKey = 'page_sections_' + (pageKey || 'all');
+    var cacheTime = 10 * 60 * 1000;
+    var cached = readCache(cacheKey, cacheTime);
+    if (cached) return cached;
+
+    var filters = [];
     if (pageKey) filters.push({ column: 'page_key', operator: 'eq', value: pageKey });
     filters.push({ column: 'published', operator: 'eq', value: true });
 
-    return listRecords('page_sections', {
-      filters,
+    var data = await listRecords('page_sections', {
+      filters: filters,
       orderBy: 'sort_order',
       emptyValue: [],
     });
+    writeCache(cacheKey, data);
+    return data;
   }
 
   async function getAllPageSections() {
@@ -601,11 +621,17 @@
   }
 
   async function getProfileBlocks() {
-    return listRecords('profile_blocks', {
+    var cacheTime = 10 * 60 * 1000;
+    var cached = readCache('profile_blocks_visible', cacheTime);
+    if (cached) return cached;
+
+    var data = await listRecords('profile_blocks', {
       filters: [{ column: 'published', operator: 'eq', value: true }],
       orderBy: 'sort_order',
       emptyValue: [],
     });
+    writeCache('profile_blocks_visible', data);
+    return data;
   }
 
   async function getAllProfileBlocks() {

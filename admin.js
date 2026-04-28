@@ -105,25 +105,26 @@
     },
     schedule: {
       type: 'generic',
-      kicker: 'Data Table',
+      kicker: 'Schedule Manager',
       title: '表格内容',
-      description: '管理学习计划表格中的任务、时间、目标和状态。',
-      actionLabel: '新建表项',
+      description: '管理学习计划表格中的任务、时间、目标和进度状态。',
+      actionLabel: '新建任务',
       implemented: true,
-      listTitle: '表格项列表',
+      listTitle: '任务列表',
       columns: [
-        { key: 'task_name', label: '任务' },
-        { key: 'time_range', label: '时间安排' },
-        { key: 'status', label: '状态' },
+        { key: 'task_name', label: '任务名称' },
+        { key: 'time_range', label: '时间安排', format: function (v) { return (v || '').length > 24 ? (v || '').slice(0, 24) + '...' : (v || ''); } },
+        { key: 'status', label: '状态', html: true, format: function (v) { var map = { '待开始': '<span class="status-dot draft"></span>待开始', '进行中': '<span class="status-dot" style="background:#3b82f6;"></span>进行中', '已完成': '<span class="status-dot published"></span>已完成' }; return map[v] || (v || '—'); } },
+        { key: 'sort_order', label: '排序' },
         { key: 'published', label: '可见', format: function (value) { return value ? '显示' : '隐藏'; } }
       ],
       fields: [
-        { name: 'task_name', label: '任务名称', type: 'text', required: true },
-        { name: 'time_range', label: '时间安排', type: 'text' },
-        { name: 'goal', label: '目标说明', type: 'textarea', full: true },
+        { name: 'task_name', label: '任务名称', type: 'text', required: true, placeholder: '如：学习 React 基础' },
+        { name: 'time_range', label: '时间安排', type: 'text', placeholder: '如：第 1-2 周 或 2026.03' },
         { name: 'status', label: '当前状态', type: 'select', options: staticOptions(['待开始', '进行中', '已完成']) },
+        { name: 'goal', label: '目标说明', type: 'textarea', full: true, placeholder: '描述该阶段的具体目标和预期成果' },
         { name: 'sort_order', label: '排序', type: 'number', defaultValue: 0 },
-        { name: 'published', label: '显示该表项', type: 'checkbox', defaultValue: true }
+        { name: 'published', label: '显示该任务', type: 'checkbox', defaultValue: true }
       ],
       loadRecords: function () { return BlogDB.getAllScheduleItems(); },
       createRecord: function (payload) { return BlogDB.createScheduleItem(payload); },
@@ -133,27 +134,27 @@
     },
     site_settings: {
       type: 'generic',
-      kicker: 'Site Settings',
+      kicker: 'Site Config',
       title: '站点设置',
-      description: '管理站点品牌、作者资料和全站基础配置。',
+      description: '管理站点品牌、作者资料、页脚文字等全站基础配置。',
       actionLabel: '新建设置',
       implemented: true,
-      listTitle: '站点设置列表',
+      listTitle: '设置列表',
       columns: [
         { key: 'setting_key', label: '键名' },
         { key: 'label', label: '说明' },
-        { key: 'value_preview', label: '当前值' }
+        { key: 'value_preview', label: '当前值', format: function (v) { var t = (v || '').replace(/\s+/g, ' '); return t.length > 40 ? t.slice(0, 40) + '...' : t; } }
       ],
       fields: [
-        { name: 'setting_key', label: '设置键名', type: 'text', required: true },
-        { name: 'label', label: '显示名称', type: 'text' },
-        { name: 'setting_value', label: '设置内容', type: 'textarea', full: true, format: formatJsonText, parse: parseMaybeJson, placeholder: '可输入普通文本，或 JSON 对象 / 数组' }
+        { name: 'setting_key', label: '设置键名', type: 'datalist', required: true, placeholder: '选择或输入自定义键名', options: staticOptions(['site_name', 'site_description', 'author_name', 'author_bio', 'author_avatar', 'footer_text', 'hero_title', 'hero_subtitle', 'seo_keywords', 'custom_css']) },
+        { name: 'label', label: '中文说明', type: 'text', placeholder: '如：站点名称、作者简介' },
+        { name: 'setting_value', label: '设置内容', type: 'textarea', full: true, format: formatJsonText, parse: parseMaybeJson, placeholder: '可输入普通文本，或 JSON 对象 / 数组用于复杂配置' }
       ],
       loadRecords: function () {
         return BlogDB.getAllSiteSettings().then(function (rows) {
           return rows.map(function (row) {
             return Object.assign({}, row, {
-              value_preview: formatJsonText(row.setting_value).replace(/\s+/g, ' ').slice(0, 36)
+              value_preview: formatJsonText(row.setting_value).replace(/\s+/g, ' ').slice(0, 60)
             });
           });
         });
@@ -166,22 +167,24 @@
       type: 'generic',
       kicker: 'Navigation Builder',
       title: '导航配置',
-      description: '管理全站顶部导航的标题、链接、图标和显示顺序。',
+      description: '管理全站顶部导航的标题、链接、图标、打开方式和显示顺序。',
       actionLabel: '新建导航项',
       implemented: true,
       listTitle: '导航项列表',
       visibilityField: 'visible',
       columns: [
         { key: 'label', label: '标题' },
-        { key: 'href', label: '链接' },
+        { key: 'href', label: '链接', format: function (v) { var t = (v || '').replace(/^https?:\/\//, ''); return t.length > 28 ? t.slice(0, 28) + '...' : t; } },
+        { key: 'icon', label: '图标', html: true, format: function (v) { return v ? '<i class="' + v + '" style="color:var(--accent);"></i> ' + v : '—'; } },
         { key: 'sort_order', label: '顺序' },
         { key: 'visible', label: '显示', format: function (value) { return value ? '显示' : '隐藏'; } }
       ],
       fields: [
-        { name: 'label', label: '标题', type: 'text', required: true },
-        { name: 'href', label: '链接地址', type: 'text', required: true },
-        { name: 'icon', label: '图标类名', type: 'text', placeholder: 'fas fa-home' },
+        { name: 'label', label: '标题', type: 'text', required: true, placeholder: '如：首页' },
+        { name: 'href', label: '链接地址', type: 'text', required: true, placeholder: '/ 或 /about.html 或 https://...' },
+        { name: 'icon', label: '图标类名', type: 'text', placeholder: 'fas fa-home（Font Awesome 图标）' },
         { name: 'parent_id', label: '父级导航', type: 'select', options: loadNavigationParentOptions },
+        { name: 'target', label: '打开方式', type: 'select', options: staticOptions(['_self', '_blank']) },
         { name: 'sort_order', label: '排序', type: 'number', defaultValue: 0 },
         { name: 'visible', label: '显示该导航项', type: 'checkbox', defaultValue: true }
       ],
@@ -195,7 +198,7 @@
       type: 'generic',
       kicker: 'Page Sections',
       title: '页面区块',
-      description: '管理首页、关于页、资源页、联系页、设置页的展示区块，支持轮播、卡片说明、校验提示等内容。',
+      description: '管理首页、关于页、资源页、联系页的展示区块，支持轮播、卡片、统计等内容类型，配备可视化编辑器。',
       actionLabel: '新建区块',
       implemented: true,
       listTitle: '页面区块列表',
@@ -203,15 +206,17 @@
         { key: 'page_key', label: '页面' },
         { key: 'section_key', label: '区块键' },
         { key: 'title', label: '标题' },
+        { key: 'description', label: '描述', format: function (v) { return (v || '').slice(0, 30) + ((v || '').length > 30 ? '...' : '') || '—'; } },
+        { key: 'sort_order', label: '排序' },
         { key: 'published', label: '显示', format: function (value) { return value ? '显示' : '隐藏'; } }
       ],
       fields: [
         { name: 'page_key', label: '页面键名', type: 'select', required: true, options: staticOptions(['home', 'resume', 'resources', 'contact', 'settings']) },
-        { name: 'section_key', label: '区块键名', type: 'text', required: true, placeholder: 'hero / usage_tips_card / contact_info_card' },
-        { name: 'eyebrow', label: '眉标题', type: 'text' },
-        { name: 'title', label: '标题', type: 'text' },
-        { name: 'description', label: '描述', type: 'textarea', full: true },
-        { name: 'content', label: '区块内容', type: 'textarea', full: true, format: formatJsonText, parse: parseMaybeJson, placeholder: '{"slides":[...]} 或 {"stats":[...]}' },
+        { name: 'section_key', label: '区块键名', type: 'text', required: true, placeholder: 'hero / carousel / author_card / note_board' },
+        { name: 'eyebrow', label: '眉标题', type: 'text', placeholder: '如：WELCOME / LATEST' },
+        { name: 'title', label: '标题', type: 'text', placeholder: '如：欢迎来到我的站点' },
+        { name: 'description', label: '描述', type: 'textarea', full: true, placeholder: '描述这个区块的用途，会显示在部分区块中' },
+        { name: 'content', label: '区块内容', type: 'textarea', full: true, format: formatJsonText, parse: parseMaybeJson, placeholder: '{"slides":[...]} 或 {"stats":[...]} — 保存时会自动从可视化编辑器回写' },
         { name: 'sort_order', label: '排序', type: 'number', defaultValue: 0 },
         { name: 'published', label: '显示该区块', type: 'checkbox', defaultValue: true }
       ],
@@ -226,20 +231,22 @@
       type: 'generic',
       kicker: 'Resume Blocks',
       title: '简历区块',
-      description: '管理关于页主栏与右侧卡片，支持 summary-grid、badge-grid、timeline、prose、check-list，侧栏可直接在可视化编辑器里切换。',
+      description: '管理关于页主栏与侧栏区块，支持 summary-grid、badge-grid、timeline、prose、check-list 等布局，配备可视化编辑器。',
       actionLabel: '新建简历区块',
       implemented: true,
       listTitle: '简历区块列表',
       columns: [
         { key: 'block_key', label: '区块键' },
         { key: 'title', label: '标题' },
-        { key: 'subtitle', label: '副标题' },
+        { key: 'subtitle', label: '副标题', format: function (v) { return v || '—'; } },
+        { key: 'content_type', label: '内容类型', format: function (v, record) { try { var c = typeof record.content === 'object' ? record.content : JSON.parse(record.content || '{}'); return c.layout || (Array.isArray(c.items) ? '列表' : '—'); } catch (_) { return '—'; } } },
+        { key: 'sort_order', label: '排序' },
         { key: 'published', label: '显示', format: function (value) { return value ? '显示' : '隐藏'; } }
       ],
       fields: [
-        { name: 'block_key', label: '区块键名', type: 'text', required: true, placeholder: 'skills' },
-        { name: 'title', label: '标题', type: 'text', required: true },
-        { name: 'subtitle', label: '副标题', type: 'text' },
+        { name: 'block_key', label: '区块键名', type: 'datalist', required: true, placeholder: '选择或输入，如：skills', options: staticOptions(['basic_info', 'skills', 'interests', 'timeline', 'self_evaluation', 'contact', 'social_links']) },
+        { name: 'title', label: '标题', type: 'text', required: true, placeholder: '如：专业技能' },
+        { name: 'subtitle', label: '副标题', type: 'text', placeholder: '如：My Skills' },
         { name: 'content', label: '区块内容', type: 'textarea', full: true, format: formatJsonText, parse: parseMaybeJson, placeholder: '{"layout":"check-list","position":"aside","items":[...]}' },
         { name: 'sort_order', label: '排序', type: 'number', defaultValue: 0 },
         { name: 'published', label: '显示该区块', type: 'checkbox', defaultValue: true }
@@ -251,16 +258,6 @@
       toggleRecord: function (id, current) { return BlogDB.updateProfileBlock(id, { published: !current }); },
       afterRender: initStructuredContentEditor
     },
-    media: {
-      type: 'placeholder',
-      kicker: 'Media Library',
-      title: '媒体资源',
-      description: '集中管理上传图片和素材复用。',
-      actionLabel: '上传素材',
-      implemented: false,
-      placeholderTitle: '媒体资源模块即将接入',
-      placeholderText: '目前文章上传仍然可用，后续会沉淀成可复用的媒体库。'
-    }
   };
 
   var state = {
@@ -1486,6 +1483,17 @@
       '</div>';
     }
 
+    if (field.type === 'datalist') {
+      var datalistOptions = options.map(function (option) {
+        return '<option value="' + esc(option.value) + '">' + esc(option.label || option.value) + '</option>';
+      }).join('');
+      return '<div class="form-group' + (field.full ? ' is-full' : '') + '">' +
+        '<label>' + esc(field.label) + (field.required ? ' *' : '') + '</label>' +
+        '<input type="text" name="' + field.name + '" value="' + esc(value) + '" placeholder="' + esc(field.placeholder || '') + '" list="dl_' + field.name + '" autocomplete="off">' +
+        '<datalist id="dl_' + field.name + '">' + datalistOptions + '</datalist>' +
+      '</div>';
+    }
+
     return '<div class="form-group' + (field.full ? ' is-full' : '') + '">' +
       '<label>' + esc(field.label) + (field.required ? ' *' : '') + '</label>' +
       '<input type="' + field.type + '" name="' + field.name + '" value="' + esc(value) + '" placeholder="' + esc(field.placeholder || '') + '">' +
@@ -1567,7 +1575,7 @@
         var cells = module.columns.map(function (column, idx) {
           var value = column.format ? column.format(record[column.key], record) : record[column.key];
           var cls = idx === 0 ? ' class="title-cell"' : '';
-          return '<td' + cls + '>' + esc(value) + '</td>';
+          return '<td' + cls + '>' + (column.html ? value : esc(value)) + '</td>';
         }).join('');
 
         var visibilityField = module.visibilityField || 'published';

@@ -1325,28 +1325,44 @@ function initSidebarTabs() {
 }
 
 function renderScheduleTable() {
-  const tbody = document.getElementById("scheduleTableBody");
-  if (!tbody) {
+  const container = document.getElementById("scheduleRoadmap");
+  if (!container) {
     return;
   }
 
   resolveScheduleRows().then((rows) => {
-    tbody.innerHTML = rows
-      .map((row) => {
-        let statusClass = "status-warn";
+    if (!rows || rows.length === 0) {
+      container.innerHTML = '<div class="schedule-empty"><i class="fas fa-calendar-check"></i><p>暂无学习计划</p><span>通过管理后台添加课程任务</span></div>';
+      return;
+    }
+
+    container.innerHTML = rows
+      .map((row, i) => {
+        let borderColor = "var(--accent-gold)";
+        let dotColor = "var(--accent-gold)";
+        let statusLabel = row.status || "待开始";
         if (row.status === "已完成") {
-          statusClass = "status-good";
+          borderColor = "#10b981";
+          dotColor = "#10b981";
         } else if (row.status === "进行中") {
-          statusClass = "status-hot";
+          borderColor = "var(--accent)";
+          dotColor = "var(--accent)";
         }
 
         return `
-          <tr>
-            <td>${row.task}</td>
-            <td>${row.time}</td>
-            <td>${row.goal}</td>
-            <td><span class="status-pill ${statusClass}">${row.status}</span></td>
-          </tr>
+          <div class="schedule-card" style="border-left-color: ${borderColor}; animation-delay: ${i * 0.06}s;">
+            <div class="schedule-card-dot" style="background: ${dotColor};" aria-hidden="true"></div>
+            <div class="schedule-card-body">
+              <div class="schedule-card-head">
+                <h3 class="schedule-card-title">${row.task}</h3>
+                <span class="schedule-status-badge" style="background: ${dotColor}18; color: ${dotColor}; border: 1px solid ${dotColor}30;">
+                  ${statusLabel}
+                </span>
+              </div>
+              ${row.time ? `<span class="schedule-time-badge"><i class="fas fa-clock"></i> ${row.time}</span>` : ""}
+              ${row.goal ? `<p class="schedule-card-goal">${row.goal}</p>` : ""}
+            </div>
+          </div>
         `;
       })
       .join("");

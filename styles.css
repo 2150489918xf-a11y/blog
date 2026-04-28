@@ -306,6 +306,142 @@ img, svg { display: block; max-width: 100%; }
 .dot.is-active { width: 28px; background: var(--accent); }
 
 /* === 文章列表（单列） === */
+/* === 学习计划路线图 === */
+.schedule-panel { padding-bottom: 20px; }
+.schedule-roadmap {
+  display: grid;
+  gap: 0;
+  padding: 18px 28px 24px;
+}
+
+.schedule-card {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 16px 18px 16px 20px;
+  border-left: 3px solid var(--accent);
+  margin-left: 12px;
+  position: relative;
+  background: rgba(255,255,255,0.45);
+  border-radius: 0 10px 10px 0;
+  transition: all 0.25s ease;
+  animation: scheduleFadeIn 0.4s ease both;
+}
+
+.schedule-card + .schedule-card {
+  margin-top: 2px;
+}
+
+.schedule-card:hover {
+  background: rgba(255,255,255,0.78);
+  box-shadow: 0 4px 20px rgba(73,177,245,0.08);
+  transform: translateX(3px);
+}
+
+.schedule-card-dot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 6px;
+  margin-left: -27px;
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.7);
+}
+
+.schedule-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.schedule-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.schedule-card-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.schedule-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+.schedule-time-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  background: rgba(169,176,211,0.12);
+  padding: 3px 10px;
+  border-radius: 6px;
+}
+
+.schedule-time-badge i {
+  font-size: 0.7rem;
+}
+
+.schedule-card-goal {
+  margin: 8px 0 0;
+  font-size: 0.88rem;
+  color: var(--text-soft);
+  line-height: 1.65;
+}
+
+.schedule-empty {
+  text-align: center;
+  padding: 42px 24px;
+  color: var(--text-soft);
+}
+
+.schedule-empty i {
+  font-size: 2.2rem;
+  display: block;
+  margin-bottom: 12px;
+  opacity: 0.5;
+  color: var(--accent);
+}
+
+.schedule-empty p {
+  margin: 0 0 6px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.schedule-empty span {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+@keyframes scheduleFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 780px) {
+  .schedule-card-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .schedule-roadmap {
+    padding: 14px 16px 18px;
+  }
+}
+
 .feed-panel { padding-bottom: 28px; }
 .article-list { padding: 24px 28px 28px; }
 .home-article-list { grid-template-columns: 1fr; }
