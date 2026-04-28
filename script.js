@@ -446,19 +446,95 @@ function createArticleCard(article, index) {
   `;
 }
 
+/**
+ * 将 Supabase 文章转换为 articleCatalog 格式（兼容现有渲染函数）
+ */
+function mapSupabaseArticle(article, index) {
+  const date = article.created_at
+    ? new Date(article.created_at).toISOString().slice(0, 10)
+    : "2026-04-27";
+  return {
+    title: article.title,
+    category: article.category || "未分类",
+    date: date,
+    summary: article.summary || "",
+    path: article.slug
+      ? resolvePath("pages/articles/" + article.slug + ".html")
+      : resolvePath("pages/articles/index.html"),
+    readTime: "阅读 " + (article.read_time || 5) + " 分钟",
+    tags: article.tags || [],
+    cover: article.cover_url || "",
+    id: article.id,
+  };
+}
+
+/** 从 Supabase 加载文章（异步），失败时返回 null */
+async function loadArticlesFromSupabase() {
+  if (typeof BlogDB === "undefined" || !BlogDB.getPublishedArticles) {
+    return null;
+  }
+  try {
+    const data = await BlogDB.getPublishedArticles();
+    if (data && data.length > 0) {
+      return data.map(mapSupabaseArticle);
+    }
+  } catch (_) { /* 降级到本地数据 */ }
+  return null;
+}
+
+/** 实际渲染文章列表的数据源（Supabase 优先，本地降级） */
+let activeArticleCatalog = null;
+
+async function resolveArticleCatalog() {
+  if (activeArticleCatalog) return activeArticleCatalog;
+  const remote = await loadArticlesFromSupabase();
+  activeArticleCatalog = remote || articleCatalog;
+  return activeArticleCatalog;
+}
+
 function renderHomeArticles() {
   const container = document.getElementById("articleList");
   if (container) {
-    container.innerHTML = articleCatalog.map(createArticleCard).join("");
+    resolveArticleCatalog().then(function (catalog) {
+      container.innerHTML = catalog.map(createArticleCard).join("");
+    });
   }
+}
+
+function renderArticleCatalog() {
+  const container = document.getElementById("articleCatalogList");
+  if (!container) {
+    return;
+  }
+
+  const buttons = Array.from(document.querySelectorAll("[data-article-filter]"));
+  let currentFilter = "全部";
+
+  const paint = function () {
+    resolveArticleCatalog().then(function (catalog) {
+      const filtered = currentFilter === "全部"
+        ? catalog
+        : catalog.filter(function (article) { return article.category === currentFilter; });
+
+      container.innerHTML = filtered.length > 0
+        ? filtered.map(createArticleCard).join("")
+        : '<div class="empty-state">当前分类暂无文章，切换到其他分类继续查看。</div>';
+
+      buttons.forEach(function (button) {
+        button.classList.toggle("is-active", button.dataset.articleFilter === currentFilter);
+      });
+    });
+  };
 }
 
 function renderArticleCatalog() {
   const container = document.getElementById("articleCatalogList");
   if (!container) return;
   
-  // 直接渲染全部笔记
-  container.innerHTML = articleCatalog.map(createArticleCard).join("");
+  // 从 Supabase 加载（带降级）
+  resolveArticleCatalog().then(function (catalog) {
+    container.innerHTML = catalog.map(createArticleCard).join("");
+  });
 }
 
 function createProjectCard(project, index) {
@@ -522,111 +598,66 @@ function countValues(values) {
 }
 
 function renderSidebarDirectory() {
-  // 克隆并按时间降序排序文章
-  const sortedArticles = [...articleCatalog].sort((a, b) => new Date(b.date) - new Date(a.date));
+  resolveArticleCatalog().then(function (catalog) {
+    const sortedArticles = [...catalog].sort(function (a, b) { return new Date(b.date) - new Date(a.date); });
 
-  // --- 1. 同步个人资料卡（熊猫头像卡片）的统计数据 ---
-  const authorCardStats = document.querySelector(".profile-hero-card.butterfly-author .profile-hero-stats");
-  if (authorCardStats) {
-    const categories = countValues(articleCatalog.map((article) => article.category));
-    const tags = countValues(articleCatalog.flatMap((article) => article.tags || []));
-    
-    // 依次更新：文章、分类、标签、时间轴的数字
-    const statValues = authorCardStats.querySelectorAll("strong");
-    if (statValues.length >= 4) {
-      statValues[0].textContent = articleCatalog.length; // 文章
-      statValues[1].textContent = categories.size;       // 分类
-      statValues[2].textContent = tags.size;             // 标签
-      statValues[3].textContent = articleCatalog.length; // 时间轴（这里时间轴项数通常等于文章数）
-    }
-  }
-
-  // --- 2. 更新侧边栏小组件（分类/标签切换面板） ---
-  
-  // A. 更新文章列表及总数
-  const articlePanel = document.getElementById("sidebarArticles");
-  const articleList = document.getElementById("sidebarArticleList");
-  if (articlePanel && articleList) {
-    // 动态更新面板标题中的文章总数
-    const titleHeader = articlePanel.querySelector("h2");
-    if (titleHeader) {
-      titleHeader.innerHTML = `<i class="fas fa-file-alt" aria-hidden="true"></i> ${articleCatalog.length} 文章`;
+    // 同步个人资料卡统计数据
+    const authorCardStats = document.querySelector(".profile-hero-card.butterfly-author .profile-hero-stats");
+    if (authorCardStats) {
+      const categories = countValues(catalog.map(function (a) { return a.category; }));
+      const tags = countValues(catalog.flatMap(function (a) { return a.tags || []; }));
+      const statValues = authorCardStats.querySelectorAll("strong");
+      if (statValues.length >= 4) {
+        statValues[0].textContent = catalog.length;
+        statValues[1].textContent = categories.size;
+        statValues[2].textContent = tags.size;
+        statValues[3].textContent = catalog.length;
+      }
     }
 
-    // 渲染最近 6 篇文章
-    articleList.innerHTML = sortedArticles
-      .slice(0, 6)
-      .map(
-        (article) => `
-          <li>
-            <a href="${resolvePath(article.path)}">
-              <strong>${article.title}</strong>
-              <span>${article.category} · ${article.readTime.replace("阅读 ", "")}</span>
-            </a>
-          </li>
-        `,
-      )
-      .join("");
-  }
-
-  // B. 更新分类列表及总数
-  const categoryPanel = document.getElementById("sidebarCategories");
-  const categoryList = document.getElementById("sidebarCategoryList");
-  if (categoryPanel && categoryList) {
-    const categories = countValues(articleCatalog.map((article) => article.category));
-    
-    // 动态更新面板标题中的分类总数
-    const titleHeader = categoryPanel.querySelector("h2");
-    if (titleHeader) {
-      titleHeader.innerHTML = `<i class="fas fa-th-large" aria-hidden="true"></i> ${categories.size} 分类`;
+    // 文章列表
+    const articlePanel = document.getElementById("sidebarArticles");
+    const articleList = document.getElementById("sidebarArticleList");
+    if (articlePanel && articleList) {
+      const h = articlePanel.querySelector("h2");
+      if (h) h.innerHTML = '<i class="fas fa-file-alt" aria-hidden="true"></i> ' + catalog.length + ' 文章';
+      articleList.innerHTML = sortedArticles.slice(0, 6).map(function (article) {
+        return '<li><a href="' + resolvePath(article.path) + '"><strong>' + article.title + '</strong><span>' + article.category + ' ' + (article.readTime || '').replace('阅读 ', '') + '</span></a></li>';
+      }).join('');
     }
 
-    categoryList.innerHTML = Array.from(categories.entries())
-      .map(([category, count], index) => `<span class="sidebar-pill tone-${(index % 6) + 1}">${category}<b>${count}</b></span>`)
-      .join("");
-  }
-
-  // C. 更新标签列表及总数
-  const tagPanel = document.getElementById("sidebarTags");
-  const tagList = document.getElementById("sidebarTagList");
-  if (tagPanel && tagList) {
-    const tags = countValues(articleCatalog.flatMap((article) => article.tags || []));
-
-    // 动态更新面板标题中的标签总数
-    const titleHeader = tagPanel.querySelector("h2");
-    if (titleHeader) {
-      titleHeader.innerHTML = `<i class="fas fa-tags" aria-hidden="true"></i> ${tags.size} 标签`;
+    // 分类
+    const categoryPanel = document.getElementById("sidebarCategories");
+    const categoryList = document.getElementById("sidebarCategoryList");
+    if (categoryPanel && categoryList) {
+      const categories = countValues(catalog.map(function (a) { return a.category; }));
+      const h = categoryPanel.querySelector("h2");
+      if (h) h.innerHTML = '<i class="fas fa-th-large" aria-hidden="true"></i> ' + categories.size + ' 分类';
+      categoryList.innerHTML = Array.from(categories.entries()).map(function (kv, i) { return '<span class="sidebar-pill tone-' + ((i % 6) + 1) + '">' + kv[0] + '<b>' + kv[1] + '</b></span>'; }).join('');
     }
 
-    tagList.innerHTML = Array.from(tags.entries())
-      .map(([tag, count], index) => `<span class="sidebar-pill tone-${(index % 6) + 1}">${tag}<b>${count}</b></span>`)
-      .join("");
-  }
-
-  // D. 更新时间轴列表及总数
-  const timelinePanel = document.getElementById("sidebarTimeline");
-  const timelineList = document.getElementById("sidebarTimelineList");
-  if (timelinePanel && timelineList) {
-    // 动态更新面板标题中的时间轴总数
-    const titleHeader = timelinePanel.querySelector("h2");
-    if (titleHeader) {
-      titleHeader.innerHTML = `<i class="fas fa-clock" aria-hidden="true"></i> ${articleCatalog.length} 时间轴`;
+    // 标签
+    const tagPanel = document.getElementById("sidebarTags");
+    const tagList = document.getElementById("sidebarTagList");
+    if (tagPanel && tagList) {
+      const tags = countValues(catalog.flatMap(function (a) { return a.tags || []; }));
+      const h = tagPanel.querySelector("h2");
+      if (h) h.innerHTML = '<i class="fas fa-tags" aria-hidden="true"></i> ' + tags.size + ' 标签';
+      tagList.innerHTML = Array.from(tags.entries()).map(function (kv, i) { return '<span class="sidebar-pill tone-' + ((i % 6) + 1) + '">' + kv[0] + '<b>' + kv[1] + '</b></span>'; }).join('');
     }
 
-    timelineList.innerHTML = sortedArticles
-      .map((article) => {
-        const date = new Date(`${article.date}T00:00:00`);
-        const month = date.getMonth() + 1;
-        const day = date.getDate();
-        return `
-          <li>
-            <time datetime="${article.date}">${month}/${day}</time>
-            <a href="${resolvePath(article.path)}">${article.title}</a>
-          </li>
-        `;
-      })
-      .join("");
-  }
+    // 时间轴
+    const timelinePanel = document.getElementById("sidebarTimeline");
+    const timelineList = document.getElementById("sidebarTimelineList");
+    if (timelinePanel && timelineList) {
+      const h = timelinePanel.querySelector("h2");
+      if (h) h.innerHTML = '<i class="fas fa-clock" aria-hidden="true"></i> ' + catalog.length + ' 时间轴';
+      timelineList.innerHTML = sortedArticles.map(function (article) {
+        var d = new Date(article.date + 'T00:00:00');
+        return '<li><time datetime="' + article.date + '">' + (d.getMonth() + 1) + '/' + d.getDate() + '</time><a href="' + resolvePath(article.path) + '">' + article.title + '</a></li>';
+      }).join('');
+    }
+  });
 }
 
 function initSidebarTabs() {

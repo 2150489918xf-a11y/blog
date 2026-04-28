@@ -3,429 +3,356 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>文章管理 - 个人博客管理系统</title>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <title>管理后台 | 知行成长志</title>
+  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
-<body data-page="admin">
-  <div class="bg-animated" aria-hidden="true"></div>
+<body>
+  <!-- ============ 登录页面 ============ -->
+  <div id="loginScreen" class="login-wrapper">
+    <div class="login-card">
+      <h1><i class="fas fa-feather"></i> 知行成长志</h1>
+      <p class="subtitle">管理后台 · 请登录</p>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="loginEmail">邮箱</label>
+          <input type="email" id="loginEmail" placeholder="admin@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">密码</label>
+          <input type="password" id="loginPassword" placeholder="至少 6 位" required>
+        </div>
+        <p class="form-error" id="loginError" style="display:none;"></p>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
+          <i class="fas fa-arrow-right-to-bracket"></i> 登录
+        </button>
+      </form>
+      <p style="text-align:center;margin-top:20px;font-size:.82rem;color:var(--admin-soft);">
+        <a href="index.html" style="color:var(--admin-soft);">&#8592; 返回首页</a>
+      </p>
+    </div>
+  </div>
 
-  <header class="site-header">
-    <div class="shell site-header-inner">
-      <div class="brand">
-        <a href="index.html" class="brand-copy">
-          <strong>个人管理后台</strong>
-          <small>Article Management System</small>
+  <!-- ============ 管理面板 ============ -->
+  <div id="adminPanel" style="display:none;">
+    <!-- 顶栏 -->
+    <header class="admin-header">
+      <div class="admin-shell admin-header-inner">
+        <a class="admin-brand" href="index.html">
+          <i class="fas fa-feather"></i> 知行成长志 · 管理后台
         </a>
-      </div>
-      <nav class="site-nav">
-        <ul class="menu-list">
-          <li><a href="index.html" class="menu-link"><i class="fas fa-home"></i> 首页</a></li>
-        </ul>
-      </nav>
-    </div>
-  </header>
-
-  <main class="home-main">
-    <div class="shell">
-      <!-- 存储用量条 -->
-      <div class="admin-storage-bar" id="storageBar">
-        <div class="storage-info">
-          <i class="fas fa-database"></i>
-          <span>本地存储：<strong id="storageUsed">0</strong> / <strong id="storageMax">5</strong> MB</span>
-        </div>
-        <div class="storage-track">
-          <div class="storage-fill" id="storageFill" style="width: 0%"></div>
+        <div class="admin-user">
+          <span class="user-email" id="adminEmail"></span>
+          <button class="btn btn-ghost btn-sm" id="btnLogout"><i class="fas fa-sign-out-alt"></i> 退出</button>
         </div>
       </div>
+    </header>
 
-      <div class="home-stage" style="grid-template-columns: 1fr;">
-        <div class="main-column">
-          <!-- 1. 编辑/新增表单 -->
-          <section class="panel side-widget" style="padding: 30px;">
-            <div class="sidebar-tab-panel is-active">
-              <h2 id="formTitle"><i class="fas fa-edit"></i> 发布新文章</h2>
-              <div class="sidebar-gradient-line"></div>
+    <main class="admin-shell" style="padding-top:24px;padding-bottom:48px;">
+      <!-- 工具栏 -->
+      <div class="card-header">
+        <h2><i class="fas fa-newspaper"></i> 文章管理</h2>
+        <button class="btn btn-primary" id="btnNewArticle"><i class="fas fa-plus"></i> 新建文章</button>
+      </div>
 
-              <form id="adminArticleForm" class="form-stack" style="display: grid; gap: 20px;">
-                <input type="hidden" id="articleId">
+      <!-- 文章列表 -->
+      <div class="card" id="articleListCard">
+        <div id="articleListContainer">
+          <p style="color:var(--admin-soft);text-align:center;padding:40px;">正在加载文章列表...</p>
+        </div>
+      </div>
 
-                <div class="form-row">
-                  <label for="title">文章标题</label>
-                  <input type="text" id="title" placeholder="输入文章标题..." required>
-                </div>
+      <!-- 文章编辑器（默认隐藏） -->
+      <div class="card" id="editorCard" style="display:none;">
+        <div class="card-header">
+          <h2 id="editorTitle"><i class="fas fa-pen-to-square"></i> 编辑文章</h2>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-outline" id="btnCancelEdit"><i class="fas fa-times"></i> 取消</button>
+            <button class="btn btn-primary" id="btnSaveArticle"><i class="fas fa-check"></i> 保存</button>
+          </div>
+        </div>
 
-                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                  <div>
-                    <label for="category">所属分类</label>
-                    <select id="category">
-                      <option value="课程设计">课程设计</option>
-                      <option value="学习路线">学习路线</option>
-                      <option value="AI 研究">AI 研究</option>
-                      <option value="AI 开发">AI 开发</option>
-                      <option value="后端开发">后端开发</option>
-                      <option value="数据展示">数据展示</option>
-                      <option value="布局实验">布局实验</option>
-                      <option value="资源整理">资源整理</option>
-                      <option value="项目展示">项目展示</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label for="date">发布日期</label>
-                    <input type="date" id="date" required>
-                  </div>
-                </div>
+        <form id="articleForm">
+          <input type="hidden" id="articleId" value="">
 
-                <div class="form-row">
-                  <label for="summary">内容摘要</label>
-                  <textarea id="summary" placeholder="输入文章简要描述..." style="min-height: 80px;"></textarea>
-                </div>
-
-                <!-- 封面图上传区 -->
-                <div class="form-row">
-                  <label>封面图片</label>
-                  <div class="cover-upload-zone" id="coverDropZone">
-                    <input type="file" id="coverFile" accept="image/*" hidden>
-                    <div class="cover-preview" id="coverPreview" style="display: none;">
-                      <img id="coverPreviewImg" alt="封面预览">
-                      <div class="cover-preview-info" id="coverInfo"></div>
-                      <button type="button" class="cover-remove-btn" id="coverRemoveBtn" title="移除封面">
-                        <i class="fas fa-times"></i>
-                      </button>
-                    </div>
-                    <div class="cover-placeholder" id="coverPlaceholder">
-                      <i class="fas fa-cloud-upload-alt"></i>
-                      <p>点击或拖拽上传封面图</p>
-                      <small>自动压缩至 800px 宽，建议 16:9 比例</small>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- 标签输入 -->
-                <div class="form-row">
-                  <label for="tags">标签（逗号分隔）</label>
-                  <input type="text" id="tags" placeholder="例如: HTML, CSS, JavaScript">
-                </div>
-
-                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                  <div>
-                    <label for="path">页面路径</label>
-                    <input type="text" id="path" value="pages/articles/index.html" placeholder="例如: pages/articles/new.html">
-                  </div>
-                  <div>
-                    <label for="readTime">阅读时长</label>
-                    <input type="text" id="readTime" value="阅读 10 分钟">
-                  </div>
-                </div>
-
-                <!-- 正文编辑器 -->
-                <div class="form-row">
-                  <label for="content">文章正文（Markdown）</label>
-                  <div class="editor-toolbar">
-                    <button type="button" class="toolbar-btn" data-action="heading" title="插入标题"><i class="fas fa-heading"></i></button>
-                    <button type="button" class="toolbar-btn" data-action="bold" title="加粗"><i class="fas fa-bold"></i></button>
-                    <button type="button" class="toolbar-btn" data-action="italic" title="斜体"><i class="fas fa-italic"></i></button>
-                    <button type="button" class="toolbar-btn" data-action="code" title="代码块"><i class="fas fa-code"></i></button>
-                    <button type="button" class="toolbar-btn" data-action="link" title="插入链接"><i class="fas fa-link"></i></button>
-                    <span class="toolbar-divider"></span>
-                    <button type="button" class="toolbar-btn toolbar-btn-accent" data-action="image" title="插入图片">
-                      <i class="fas fa-image"></i> 插入图片
-                    </button>
-                    <input type="file" id="contentImageFile" accept="image/*" hidden>
-                  </div>
-                  <textarea id="content" placeholder="用 Markdown 编写文章正文...&#10;&#10;## 二级标题&#10;正文内容...&#10;&#10;支持通过上方工具栏插入图片" style="min-height: 300px; font-family: 'Courier New', monospace;"></textarea>
-                </div>
-
-                <div class="form-actions" style="margin-top: 10px;">
-                  <button type="submit" class="button-primary" style="width: 100%;">
-                    <i class="fas fa-paper-plane"></i> 保存并更新本地库
-                  </button>
-                  <button type="button" id="resetBtn" class="button-secondary" style="width: 100%; margin-top: 10px;">
-                    重置表单
-                  </button>
-                </div>
-              </form>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-group">
+              <label for="articleTitle">标题 *</label>
+              <input type="text" id="articleTitle" placeholder="文章标题" required>
             </div>
-          </section>
-
-          <!-- 2. 文章列表管理 -->
-          <section class="panel side-widget" style="margin-top: 22px; padding: 30px;">
-            <div class="sidebar-tab-panel is-active">
-              <h2><i class="fas fa-list"></i> 现有文章库 (<span id="articleCount">0</span> 篇)</h2>
-              <div class="sidebar-gradient-line"></div>
-
-              <div class="table-wrapper">
-                <table>
-                  <thead>
-                    <tr>
-                      <th style="width: 60px;">封面</th>
-                      <th>标题</th>
-                      <th>日期</th>
-                      <th>分类</th>
-                      <th style="width: 120px;">操作</th>
-                    </tr>
-                  </thead>
-                  <tbody id="adminArticleTable"></tbody>
-                </table>
-              </div>
-
-              <div style="margin-top: 30px; padding: 20px; background: rgba(73,177,245,0.05); border-radius: 8px;">
-                <h3 style="margin-top: 0;"><i class="fas fa-code"></i> 持久化同步</h3>
-                <p style="font-size: 0.85rem; color: var(--text-soft);">
-                  提示：本地保存的文章存储在浏览器缓存中。为了永久保存，请点击下方按钮导出完整 JSON 代码，并替换 <code>script.js</code> 中的 <code>articleCatalog</code> 变量。
-                </p>
-                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                  <button id="exportBtn" class="button-secondary">
-                    <i class="fas fa-copy"></i> 复制文章 JSON
-                  </button>
-                  <button id="clearBtn" class="button-secondary" style="color: #ff4d93; border-color: rgba(255,77,147,0.3);">
-                    <i class="fas fa-trash-alt"></i> 清空本地数据
-                  </button>
-                </div>
-              </div>
+            <div class="form-group">
+              <label for="articleSlug">URL 别名</label>
+              <input type="text" id="articleSlug" placeholder="my-article-slug">
             </div>
-          </section>
-        </div>
-      </div>
-    </div>
-  </main>
+          </div>
 
-  <script src="script.js"></script>
+          <div class="form-group">
+            <label for="articleSummary">摘要</label>
+            <textarea id="articleSummary" placeholder="一句话描述文章内容" style="min-height:60px;"></textarea>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+            <div class="form-group">
+              <label for="articleCategory">分类</label>
+              <input type="text" id="articleCategory" placeholder="如：课程设计" list="categoryList">
+              <datalist id="categoryList"></datalist>
+            </div>
+            <div class="form-group">
+              <label for="articleReadTime">阅读时长（分钟）</label>
+              <input type="number" id="articleReadTime" value="5" min="1" max="60">
+            </div>
+            <div class="form-group">
+              <label for="articleCover">封面图片 URL</label>
+              <input type="url" id="articleCover" placeholder="https://...">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>标签</label>
+            <div class="tag-input-wrapper" id="tagWrapper">
+              <input type="text" class="tag-input" id="tagInput" placeholder="输入标签后按回车">
+            </div>
+          </div>
+
+          <!-- 拖拽上传 -->
+          <div class="drop-zone" id="dropZone">
+            <i class="fas fa-cloud-arrow-up"></i>
+            <span>拖拽图片到这里上传，或点击选择文件</span>
+            <input type="file" id="fileInput" accept="image/*" style="display:none;" multiple>
+          </div>
+
+          <!-- Markdown 编辑器 -->
+          <label style="display:block;font-weight:600;margin-bottom:8px;">正文（Markdown）</label>
+          <div class="editor-layout">
+            <textarea class="editor-input" id="mdInput" placeholder="在这里写 Markdown...&#10;&#10;## 二级标题&#10;&#10;**加粗文字** *斜体*&#10;&#10;- 列表项"></textarea>
+            <div class="editor-preview" id="mdPreview"></div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:12px;margin-top:16px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;">
+              <input type="checkbox" id="articlePublished" checked> 发布（公开可见）
+            </label>
+          </div>
+        </form>
+      </div>
+    </main>
+
+    <!-- Toast 容器 -->
+    <div class="toast-container" id="toastContainer"></div>
+  </div>
+
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- 数据库封装 -->
+  <script src="supabase.js"></script>
+  <!-- 管理后台逻辑 -->
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const form = document.getElementById('adminArticleForm');
-      const tableBody = document.getElementById('adminArticleTable');
-      const titleInput = document.getElementById('title');
-      const categoryInput = document.getElementById('category');
-      const dateInput = document.getElementById('date');
-      const summaryInput = document.getElementById('summary');
-      const pathInput = document.getElementById('path');
-      const readTimeInput = document.getElementById('readTime');
-      const tagsInput = document.getElementById('tags');
-      const contentInput = document.getElementById('content');
-      const articleIdInput = document.getElementById('articleId');
-      const formTitle = document.getElementById('formTitle');
-      const resetBtn = document.getElementById('resetBtn');
+  (function () {
+    var $loginScreen = document.getElementById('loginScreen');
+    var $adminPanel = document.getElementById('adminPanel');
+    var $loginForm = document.getElementById('loginForm');
+    var $loginError = document.getElementById('loginError');
+    var $adminEmail = document.getElementById('adminEmail');
+    var $articleListContainer = document.getElementById('articleListContainer');
+    var $editorCard = document.getElementById('editorCard');
+    var $articleListCard = document.getElementById('articleListCard');
+    var $btnNewArticle = document.getElementById('btnNewArticle');
+    var $btnCancelEdit = document.getElementById('btnCancelEdit');
+    var $btnSaveArticle = document.getElementById('btnSaveArticle');
+    var $btnLogout = document.getElementById('btnLogout');
+    var $mdInput = document.getElementById('mdInput');
+    var $mdPreview = document.getElementById('mdPreview');
+    var $dropZone = document.getElementById('dropZone');
+    var $fileInput = document.getElementById('fileInput');
+    var $tagInput = document.getElementById('tagInput');
+    var $tagWrapper = document.getElementById('tagWrapper');
+    var $toastContainer = document.getElementById('toastContainer');
+    var currentTags = [];
 
-      // 封面图相关
-      const coverDropZone = document.getElementById('coverDropZone');
-      const coverFile = document.getElementById('coverFile');
-      const coverPreview = document.getElementById('coverPreview');
-      const coverPreviewImg = document.getElementById('coverPreviewImg');
-      const coverInfo = document.getElementById('coverInfo');
-      const coverPlaceholder = document.getElementById('coverPlaceholder');
-      const coverRemoveBtn = document.getElementById('coverRemoveBtn');
+    function $(id) { return document.getElementById(id); }
 
-      // 正文插图
-      const contentImageFile = document.getElementById('contentImageFile');
+    function toast(msg, type) {
+      type = type || 'info';
+      var el = document.createElement('div');
+      el.className = 'toast ' + type;
+      el.textContent = msg;
+      $toastContainer.appendChild(el);
+      setTimeout(function () { el.remove(); }, 3500);
+    }
 
-      let currentCoverBase64 = '';
+    function md2html(md) {
+      if (!md) return '';
+      var html = md
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">')
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+        .replace(/^#### (.+)$/gm, '<h4>$1</h4>')
+        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+        .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+        .replace(/^- (.+)$/gm, '<li>$1</li>')
+        .replace(/(<li>[\s\S]*?<\/li>)/g, function (m) { return '<ul>' + m + '</ul>'; })
+        .replace(/\n\n/g, '</p><p>');
+      return '<p>' + html + '</p>';
+    }
 
-      dateInput.value = new Date().toISOString().split('T')[0];
+    function renderTags() {
+      var pills = $tagWrapper.querySelectorAll('.tag-pill');
+      pills.forEach(function (p) { p.remove(); });
+      currentTags.forEach(function (tag, idx) {
+        var pill = document.createElement('span');
+        pill.className = 'tag-pill';
+        pill.innerHTML = tag + ' <span class="tag-remove" data-idx="' + idx + '">&times;</span>';
+        $tagWrapper.insertBefore(pill, $tagInput);
+      });
+    }
 
-      // === 存储用量 ===
-      function updateStorageBar() {
-        const usage = getStorageUsage();
-        document.getElementById('storageUsed').textContent = usage.usedMB;
-        document.getElementById('storageMax').textContent = usage.maxMB;
-        const pct = Math.min((usage.usedMB / usage.maxMB) * 100, 100);
-        const fill = document.getElementById('storageFill');
-        fill.style.width = pct + '%';
-        fill.style.background = pct > 80 ? '#ff4d93' : pct > 50 ? '#f6d563' : 'var(--accent)';
+    $tagWrapper.addEventListener('click', function (e) {
+      if (e.target.classList.contains('tag-remove')) {
+        currentTags.splice(parseInt(e.target.dataset.idx), 1);
+        renderTags();
       }
-
-      // === 封面图上传 ===
-      coverDropZone.addEventListener('click', () => coverFile.click());
-      coverDropZone.addEventListener('dragover', (e) => { e.preventDefault(); coverDropZone.classList.add('is-dragover'); });
-      coverDropZone.addEventListener('dragleave', () => coverDropZone.classList.remove('is-dragover'));
-      coverDropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        coverDropZone.classList.remove('is-dragover');
-        if (e.dataTransfer.files[0]) handleCoverFile(e.dataTransfer.files[0]);
-      });
-      coverFile.addEventListener('change', () => {
-        if (coverFile.files[0]) handleCoverFile(coverFile.files[0]);
-      });
-      coverRemoveBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        currentCoverBase64 = '';
-        coverPreview.style.display = 'none';
-        coverPlaceholder.style.display = '';
-        coverFile.value = '';
-      });
-
-      async function handleCoverFile(file) {
-        try {
-          const result = await compressImage(file, 800, 0.7);
-          currentCoverBase64 = result.base64;
-          coverPreviewImg.src = result.base64;
-          coverInfo.textContent = `${result.width}×${result.height}  |  ${result.sizeKB} KB`;
-          coverPreview.style.display = '';
-          coverPlaceholder.style.display = 'none';
-        } catch (err) {
-          alert('图片加载失败，请重试');
-        }
-      }
-
-      // === 正文编辑器工具栏 ===
-      document.querySelectorAll('.toolbar-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const action = btn.dataset.action;
-          const ta = contentInput;
-          const start = ta.selectionStart;
-          const end = ta.selectionEnd;
-          const selected = ta.value.substring(start, end);
-
-          let insert = '';
-          switch (action) {
-            case 'heading': insert = `## ${selected || '标题'}`; break;
-            case 'bold': insert = `**${selected || '加粗文字'}**`; break;
-            case 'italic': insert = `*${selected || '斜体文字'}*`; break;
-            case 'code': insert = selected.includes('\n') ? `\`\`\`\n${selected || '代码'}\n\`\`\`` : `\`${selected || '代码'}\``; break;
-            case 'link': insert = `[${selected || '链接文字'}](url)`; break;
-            case 'image':
-              contentImageFile.click();
-              return;
-          }
-          ta.setRangeText(insert, start, end, 'end');
-          ta.focus();
-        });
-      });
-
-      contentImageFile.addEventListener('change', async () => {
-        const file = contentImageFile.files[0];
-        if (!file) return;
-        try {
-          const result = await compressImage(file, 600, 0.65);
-          const ta = contentInput;
-          const pos = ta.selectionStart;
-          const md = `\n![${file.name}](${result.base64})\n`;
-          ta.setRangeText(md, pos, pos, 'end');
-          ta.focus();
-          updateStorageBar();
-        } catch (err) {
-          alert('图片压缩失败');
-        }
-        contentImageFile.value = '';
-      });
-
-      // === 文章列表渲染 ===
-      function renderTable() {
-        const articles = loadAllArticles();
-        document.getElementById('articleCount').textContent = articles.length;
-        tableBody.innerHTML = articles.map(art => {
-          const thumbSrc = art.cover || buildArticleCover(art, 0);
-          return `
-            <tr>
-              <td><img src="${thumbSrc}" class="admin-thumb" alt=""></td>
-              <td><strong>${art.title}</strong></td>
-              <td>${art.date}</td>
-              <td><span class="status-pill status-good">${art.category}</span></td>
-              <td>
-                <button onclick="editArticle('${art.id}')" class="chip-button" style="color: var(--accent);"><i class="fas fa-edit"></i></button>
-                <button onclick="deleteArticle('${art.id}')" class="chip-button" style="color: #ff4d93;"><i class="fas fa-trash"></i></button>
-              </td>
-            </tr>
-          `;
-        }).join('');
-        updateStorageBar();
-      }
-
-      // === 编辑文章 ===
-      window.editArticle = (id) => {
-        const articles = loadAllArticles();
-        const art = articles.find(a => a.id === id);
-        if (!art) return;
-
-        articleIdInput.value = art.id;
-        titleInput.value = art.title;
-        categoryInput.value = art.category;
-        dateInput.value = art.date;
-        summaryInput.value = art.summary;
-        pathInput.value = art.path;
-        readTimeInput.value = art.readTime;
-        tagsInput.value = (art.tags || []).join(', ');
-        contentInput.value = art.content || '';
-
-        if (art.cover) {
-          currentCoverBase64 = art.cover;
-          coverPreviewImg.src = art.cover;
-          coverInfo.textContent = '已有封面';
-          coverPreview.style.display = '';
-          coverPlaceholder.style.display = 'none';
-        } else {
-          currentCoverBase64 = '';
-          coverPreview.style.display = 'none';
-          coverPlaceholder.style.display = '';
-        }
-
-        formTitle.innerHTML = `<i class="fas fa-edit"></i> 编辑文章: ${art.title}`;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      };
-
-      // === 删除文章 ===
-      window.deleteArticle = (id) => {
-        if (confirm('确定要删除这篇文章吗？')) {
-          window.blogAdmin.delete(id);
-          renderTable();
-        }
-      };
-
-      // === 提交表单 ===
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const tagStr = tagsInput.value.trim();
-        const tags = tagStr ? tagStr.split(/[,，]/).map(t => t.trim()).filter(Boolean) : ['未分类'];
-
-        const data = {
-          id: articleIdInput.value || null,
-          title: titleInput.value,
-          category: categoryInput.value,
-          date: dateInput.value,
-          summary: summaryInput.value,
-          path: pathInput.value,
-          readTime: readTimeInput.value,
-          tags,
-          content: contentInput.value || '',
-          cover: currentCoverBase64 || undefined
-        };
-        window.blogAdmin.save(data);
-        alert('保存成功！');
-        resetForm();
-        renderTable();
-      });
-
-      function resetForm() {
-        form.reset();
-        articleIdInput.value = '';
-        currentCoverBase64 = '';
-        coverPreview.style.display = 'none';
-        coverPlaceholder.style.display = '';
-        coverFile.value = '';
-        formTitle.innerHTML = `<i class="fas fa-edit"></i> 发布新文章`;
-        dateInput.value = new Date().toISOString().split('T')[0];
-      }
-
-      resetBtn.addEventListener('click', resetForm);
-
-      // === 导出 / 清空 ===
-      document.getElementById('exportBtn').addEventListener('click', () => {
-        const code = window.blogAdmin.getRawCode();
-        navigator.clipboard.writeText(code).then(() => {
-          alert('代码已复制到剪贴板！请将其覆盖到 script.js 中的 articleCatalog 数组。');
-        });
-      });
-
-      document.getElementById('clearBtn').addEventListener('click', () => {
-        if (confirm('确定要清空所有本地保存的文章数据吗？内置文章不受影响。')) {
-          window.blogAdmin.clearLocal();
-          renderTable();
-          alert('本地数据已清空');
-        }
-      });
-
-      renderTable();
     });
+
+    $tagInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        var val = $tagInput.value.trim();
+        if (val && currentTags.indexOf(val) === -1) { currentTags.push(val); renderTags(); }
+        $tagInput.value = '';
+      }
+    });
+
+    $dropZone.addEventListener('click', function () { $fileInput.click(); });
+    $fileInput.addEventListener('change', function (e) {
+      Array.from(e.target.files).forEach(uploadFile);
+    });
+
+    $dropZone.addEventListener('dragover', function (e) { e.preventDefault(); $dropZone.classList.add('drag-over'); });
+    $dropZone.addEventListener('dragleave', function () { $dropZone.classList.remove('drag-over'); });
+    $dropZone.addEventListener('drop', function (e) {
+      e.preventDefault(); $dropZone.classList.remove('drag-over');
+      Array.from(e.dataTransfer.files).forEach(uploadFile);
+    });
+
+    async function uploadFile(file) {
+      if (!file.type.startsWith('image/')) return;
+      toast('正在上传 ' + file.name + '...', 'info');
+      try {
+        var url = await BlogDB.uploadImage(file);
+        $mdInput.value += '\n![' + file.name + '](' + url + ')\n';
+        updatePreview();
+        toast('上传成功', 'success');
+      } catch (err) { toast('上传失败: ' + err.message, 'error'); }
+    }
+
+    function updatePreview() { $mdPreview.innerHTML = md2html($mdInput.value); }
+    $mdInput.addEventListener('input', updatePreview);
+
+    async function loadArticleList() {
+      $articleListContainer.innerHTML = '<p style="color:var(--admin-soft);text-align:center;padding:40px;">加载中...</p>';
+      try {
+        var articles = await BlogDB.getAllArticles();
+        if (articles.length === 0) {
+          $articleListContainer.innerHTML = '<p style="color:var(--admin-soft);text-align:center;padding:40px;">还没有文章，点击上方「新建文章」开始创作。</p>';
+          return;
+        }
+        var rows = articles.map(function (a) {
+          return '<tr>' +
+            '<td class="title-cell">' + esc(a.title) + '</td>' +
+            '<td>' + esc(a.category || '未分类') + '</td>' +
+            '<td><span class="status-dot ' + (a.published ? 'published' : 'draft') + '"></span>' + (a.published ? '已发布' : '草稿') + '</td>' +
+            '<td>' + fmtDate(a.created_at) + '</td>' +
+            '<td><div class="action-group">' +
+              '<button onclick="window._edit(\'' + a.id + '\')"><i class="fas fa-pen"></i></button>' +
+              '<button onclick="window._toggle(\'' + a.id + '\',' + a.published + ')"><i class="fas fa-' + (a.published ? 'eye-slash' : 'eye') + '"></i></button>' +
+              '<button class="danger" onclick="window._del(\'' + a.id + '\')"><i class="fas fa-trash"></i></button>' +
+            '</div></td></tr>';
+        }).join('');
+        $articleListContainer.innerHTML = '<table class="article-table"><thead><tr><th>标题</th><th>分类</th><th>状态</th><th>时间</th><th>操作</th></tr></thead><tbody>' + rows + '</tbody></table>';
+      } catch (err) {
+        $articleListContainer.innerHTML = '<p style="color:var(--admin-danger);text-align:center;padding:40px;">加载失败: ' + err.message + '</p>';
+      }
+    }
+
+    function esc(s) { if (!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function fmtDate(d) { if (!d) return ''; var t = new Date(d); return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0'); }
+
+    function showEditor(article) {
+      $editorCard.style.display = 'block'; $articleListCard.style.display = 'none'; currentTags = [];
+      if (article) {
+        $('articleId').value = article.id; $('articleTitle').value = article.title || '';
+        $('articleSlug').value = article.slug || ''; $('articleSummary').value = article.summary || '';
+        $('articleCategory').value = article.category || ''; $('articleReadTime').value = article.read_time || 5;
+        $('articleCover').value = article.cover_url || ''; $mdInput.value = article.content || '';
+        $('articlePublished').checked = article.published !== false; currentTags = article.tags || [];
+        document.getElementById('editorTitle').innerHTML = '<i class="fas fa-pen-to-square"></i> 编辑文章';
+      } else {
+        $('articleId').value = ''; $('articleTitle').value = ''; $('articleSlug').value = '';
+        $('articleSummary').value = ''; $('articleCategory').value = ''; $('articleReadTime').value = 5;
+        $('articleCover').value = ''; $mdInput.value = ''; $('articlePublished').checked = true; currentTags = [];
+        document.getElementById('editorTitle').innerHTML = '<i class="fas fa-plus"></i> 新建文章';
+      }
+      renderTags(); updatePreview();
+    }
+
+    function hideEditor() { $editorCard.style.display = 'none'; $articleListCard.style.display = 'block'; }
+
+    async function saveArticle() {
+      var article = {
+        title: $('articleTitle').value.trim(), slug: $('articleSlug').value.trim(),
+        summary: $('articleSummary').value.trim(), content: $mdInput.value,
+        cover_url: $('articleCover').value.trim(), category: $('articleCategory').value.trim(),
+        tags: currentTags, read_time: parseInt($('articleReadTime').value) || 5,
+        published: $('articlePublished').checked
+      };
+      if (!article.title) { toast('请输入文章标题', 'error'); return; }
+      if (!article.slug) article.slug = article.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+      try {
+        var id = $('articleId').value;
+        if (id) { await BlogDB.updateArticle(id, article); toast('文章更新成功', 'success'); }
+        else { await BlogDB.createArticle(article); toast('文章创建成功', 'success'); }
+        hideEditor(); await loadArticleList();
+      } catch (err) { toast('保存失败: ' + err.message, 'error'); }
+    }
+
+    window._edit = async function (id) {
+      var articles = await BlogDB.getAllArticles();
+      var a = articles.find(function (x) { return x.id === id; });
+      if (a) showEditor(a);
+    };
+    window._toggle = async function (id, cur) { await BlogDB.togglePublish(id, !cur); toast(cur ? '已设为草稿' : '已发布', 'success'); await loadArticleList(); };
+    window._del = async function (id) { if (!confirm('确定删除？')) return; await BlogDB.deleteArticle(id); toast('已删除', 'success'); await loadArticleList(); };
+
+    $loginForm.addEventListener('submit', async function (e) {
+      e.preventDefault(); $loginError.style.display = 'none';
+      try { await BlogDB.adminLogin($('loginEmail').value.trim(), $('loginPassword').value); await showAdmin(); }
+      catch (err) { $loginError.textContent = err.message; $loginError.style.display = 'block'; }
+    });
+
+    $btnLogout.addEventListener('click', async function () { await BlogDB.adminLogout(); showLogin(); });
+
+    function showLogin() { $loginScreen.style.display = 'grid'; $adminPanel.style.display = 'none'; }
+    async function showAdmin() {
+      $loginScreen.style.display = 'none'; $adminPanel.style.display = 'block';
+      var s = await BlogDB.checkAuth(); if (s) $adminEmail.textContent = s.user.email;
+      await loadArticleList();
+    }
+
+    $btnNewArticle.addEventListener('click', function () { showEditor(null); });
+    $btnCancelEdit.addEventListener('click', hideEditor);
+    $btnSaveArticle.addEventListener('click', saveArticle);
+
+    (async function boot() {
+      try { var s = await BlogDB.checkAuth(); if (s) await showAdmin(); else showLogin(); }
+      catch (_) { showLogin(); }
+    })();
+  })();
   </script>
 </body>
 </html>
