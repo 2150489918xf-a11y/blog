@@ -79,16 +79,15 @@
 
         var result = await client.auth.signUp({ email: email, password: password });
 
-        if (result.data.user) {
-          if (result.data.session) {
-            // 邮箱确认已跳过（Supabase 设置中关了邮件确认）
-            showSuccess('注册成功！3 秒后跳转到管理后台...');
-            setTimeout(function () { window.location.href = 'admin.html'; }, 3000);
-          } else {
-            // 需要去邮箱确认
-            showSuccess('注册成功！请检查邮箱 "' + email + '" 中的确认链接，确认后即可登录。');
-          }
+        if (!result.data.user) throw new Error('注册失败');
+
+        // 直接登录（绕过邮箱确认）
+        if (!result.data.session) {
+          result = await client.auth.signInWithPassword({ email: email, password: password });
         }
+
+        showSuccess('注册成功！3 秒后跳转到管理后台...');
+        setTimeout(function () { window.location.href = 'admin.html'; }, 3000);
       } catch (err) {
         if (err.message && err.message.includes('already registered')) {
           showError('该邮箱已注册，请直接登录');
