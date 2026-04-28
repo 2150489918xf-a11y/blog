@@ -1168,49 +1168,60 @@
   //  9. 通用列表渲染器 — 根据 module.columns 生成表格
   // ================================================================
 
-  async function loadGenericList(moduleId) {
+  /** 将记录数组渲染为表格 HTML */
+  function renderGenericTable(module, moduleId, records) {
+    $moduleListTitle.textContent = module.listTitle;
+    $moduleListMeta.textContent = '共 ' + records.length + ' 条';
+
+    if (!records.length) {
+      $moduleListContainer.innerHTML = '<div class="module-empty-state"><strong>当前模块还没有内容</strong><span>点击右上角按钮即可开始新增。</span></div>';
+      return;
+    }
+
+    var header = module.columns.map(function (col) { return '<th>' + esc(col.label) + '</th>'; }).join('');
+
+    var rows = records.map(function (record) {
+      var cells = module.columns.map(function (col, idx) {
+        var value = col.format ? col.format(record[col.key], record) : record[col.key];
+        var cls = idx === 0 ? ' class="title-cell"' : '';
+        return '<td' + cls + '>' + (col.html ? value : esc(value)) + '</td>';
+      }).join('');
+
+      var visField = module.visibilityField || 'published';
+      var canToggle = typeof module.toggleRecord === 'function' && typeof record[visField] === 'boolean';
+      var toggleVal = canToggle ? !!record[visField] : false;
+      var actions = '<button onclick="window._moduleEdit(\'' + moduleId + '\',\'' + record.id + '\')"><i class="fas fa-pen"></i></button>';
+
+      if (canToggle) {
+        actions += '<button onclick="window._moduleToggle(\'' + moduleId + '\',\'' + record.id + '\',' + toggleVal + ')"><i class="fas fa-' + (toggleVal ? 'eye-slash' : 'eye') + '"></i></button>';
+      }
+
+      actions += '<button class="danger" onclick="window._moduleDel(\'' + moduleId + '\',\'' + record.id + '\')"><i class="fas fa-trash"></i></button>';
+
+      return '<tr>' + cells + '<td><div class="action-group">' + actions + '</div></td></tr>';
+    }).join('');
+
+    $moduleListContainer.innerHTML = '<table class="article-table"><thead><tr>' + header + '<th>操作</th></tr></thead><tbody>' + rows + '</tbody></table>';
+  }
+
+  async function loadGenericList(moduleId, forceReload) {
     var module = MODULES[moduleId];
+
+    // 有缓存且未强制刷新，直接使用缓存
+    if (!forceReload && state.recordCache[moduleId]) {
+      var cached = state.recordCache[moduleId];
+      $moduleListTitle.textContent = module.listTitle;
+      $moduleListMeta.textContent = '共 ' + cached.length + ' 条';
+      renderGenericTable(module, moduleId, cached);
+      return;
+    }
+
     $moduleListContainer.innerHTML = '<p style="color:var(--text-soft);text-align:center;padding:60px;">加载中...</p>';
 
     try {
       var records = await module.loadRecords();
       state.recordCache[moduleId] = records;
-      $moduleListTitle.textContent = module.listTitle;
-      $moduleListMeta.textContent = '共 ' + records.length + ' 条';
-
-      if (!records.length) {
-        $moduleListContainer.innerHTML = '<div class="module-empty-state"><strong>当前模块还没有内容</strong><span>点击右上角按钮即可开始新增。</span></div>';
-        return;
-      }
-
-      var header = module.columns.map(function (column) {
-        return '<th>' + esc(column.label) + '</th>';
-      }).join('');
-
-      var rows = records.map(function (record) {
-        var cells = module.columns.map(function (column, idx) {
-          var value = column.format ? column.format(record[column.key], record) : record[column.key];
-          var cls = idx === 0 ? ' class="title-cell"' : '';
-          return '<td' + cls + '>' + (column.html ? value : esc(value)) + '</td>';
-        }).join('');
-
-        var visibilityField = module.visibilityField || 'published';
-        var canToggle = typeof module.toggleRecord === 'function' && typeof record[visibilityField] === 'boolean';
-        var toggleValue = canToggle ? !!record[visibilityField] : false;
-        var actions = '<button onclick="window._moduleEdit(\'' + moduleId + '\',\'' + record.id + '\')"><i class="fas fa-pen"></i></button>';
-
-        if (canToggle) {
-          actions += '<button onclick="window._moduleToggle(\'' + moduleId + '\',\'' + record.id + '\',' + toggleValue + ')"><i class="fas fa-' + (toggleValue ? 'eye-slash' : 'eye') + '"></i></button>';
-        }
-
-        actions += '<button class="danger" onclick="window._moduleDel(\'' + moduleId + '\',\'' + record.id + '\')"><i class="fas fa-trash"></i></button>';
-
-        return '<tr>' + cells +
-          '<td><div class="action-group">' + actions + '</div></td>' +
-        '</tr>';
-      }).join('');
-
-      $moduleListContainer.innerHTML = '<table class="article-table"><thead><tr>' + header + '<th>操作</th></tr></thead><tbody>' + rows + '</tbody></table>';
+      renderGenericTable(module, moduleId, records);
     } catch (err) {
       $moduleListContainer.innerHTML = '<p style="color:#ef4444;text-align:center;padding:40px;">加载失败: ' + err.message + '</p>';
     }
@@ -1244,6 +1255,7 @@
       }
 
       hideGenericEditor();
+      state.recordCache[state.activeModule] = null;
       await loadGenericList(state.activeModule);
     } catch (err) {
       toast(err.message || '保存失败', 'error');
@@ -1257,6 +1269,7 @@
       return;
     }
     if (module.type === 'generic' && !state.isEditingGeneric) {
+      state.recordCache[state.activeModule] = null;
       await loadGenericList(state.activeModule);
     }
   }
@@ -1426,6 +1439,7 @@
     var module = MODULES[moduleId];
     await module.toggleRecord(id, current);
     toast(current ? '已隐藏' : '已显示', 'success');
+    state.recordCache[moduleId] = null;
     await loadGenericList(moduleId);
   };
 
@@ -1434,6 +1448,7 @@
     if (!confirm('确定删除？')) return;
     await module.deleteRecord(id);
     toast('已删除', 'success');
+    state.recordCache[moduleId] = null;
     await loadGenericList(moduleId);
   };
 
