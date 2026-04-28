@@ -492,7 +492,7 @@
       case 'cards':
         return { cards: [{ tag: '', title: '', description: '', tone: '' }] };
       case 'slides':
-        return { slides: [{ chip: '', date: '', readTime: '', title: '', summary: '', visualClass: '', imageUrl: '' }] };
+        return { slides: [{ source: 'article', refId: '', chip: '', date: '', readTime: '', title: '', summary: '', visualClass: '', imageUrl: '' }] };
       case 'stats':
         return { stats: [{ key: 'articleCount', label: '文章' }] };
       case 'summary':
@@ -548,6 +548,8 @@
         return {
           slides: Array.isArray(source.slides) && source.slides.length ? source.slides.map(function (item) {
             return {
+              source: item.source || 'article',
+              refId: item.refId || '',
               chip: item.chip || '',
               date: item.date || '',
               readTime: item.readTime || '',
@@ -663,7 +665,6 @@
     if (type === 'slides') {
       return content.slides.map(function (item, index) {
         var sourceType = (item.source === 'project') ? 'project' : 'article';
-        var hasImage = !!item.imageUrl;
         return '<div class="structured-editor-row slide-editor-card" data-structured-row data-slide-index="' + index + '">' +
           '<div class="slide-card-header">' +
             '<span class="slide-card-index">轮播 #' + (index + 1) + '</span>' +
@@ -677,30 +678,23 @@
               '<option value="">— 选择内容 —</option>' +
             '</select>' +
           '</div>' +
-          '<div class="slide-image-upload" data-slide-upload data-slide-upload-index="' + index + '">' +
-            '<input type="hidden" data-field="imageUrl" data-structured-input value="' + esc(item.imageUrl || '') + '">' +
-            '<div class="slide-image-preview" data-slide-preview style="display:' + (hasImage ? '' : 'none') + ';">' +
-              '<img data-slide-preview-img src="' + esc(item.imageUrl || '') + '" alt="">' +
-              '<button type="button" class="cover-remove-btn" data-slide-remove-image>&times;</button>' +
-            '</div>' +
-            '<div class="slide-image-placeholder" data-slide-placeholder style="display:' + (hasImage ? 'none' : '') + ';">' +
-              '<i class="fas fa-image"></i>' +
-              '<span>点击上传轮播配图</span>' +
-            '</div>' +
-          '</div>' +
+          '<input type="hidden" data-field="refId" data-structured-input value="' + esc(item.refId || '') + '">' +
+          '<input type="hidden" data-field="source" data-structured-input value="' + esc(sourceType) + '">' +
+          '<input type="hidden" data-field="imageUrl" data-structured-input value="' + esc(item.imageUrl || '') + '">' +
           '<div class="slide-fields-grid">' +
-            '<input type="text" data-field="title" data-structured-input value="' + esc(item.title || '') + '" placeholder="标题 *">' +
-            '<input type="text" data-field="chip" data-structured-input value="' + esc(item.chip || '') + '" placeholder="标签 (chip)">' +
+            '<input type="text" data-field="title" data-structured-input value="' + esc(item.title || '') + '" placeholder="标题（从文章来源自动填充）">' +
+            '<input type="text" data-field="chip" data-structured-input value="' + esc(item.chip || '') + '" placeholder="标签">' +
             '<select data-field="visualClass" data-structured-input>' +
               '<option value="">默认自动</option>' +
               '<option value="visual-red"' + (item.visualClass === 'visual-red' ? ' selected' : '') + '>红色</option>' +
               '<option value="visual-blue"' + (item.visualClass === 'visual-blue' ? ' selected' : '') + '>蓝色</option>' +
               '<option value="visual-green"' + (item.visualClass === 'visual-green' ? ' selected' : '') + '>绿色</option>' +
             '</select>' +
-            '<input type="text" data-field="date" data-structured-input value="' + esc(item.date || '') + '" placeholder="日期 (如 2026-04)">' +
-            '<input type="text" data-field="readTime" data-structured-input value="' + esc(item.readTime || '') + '" placeholder="阅读时长">' +
-            '<textarea data-field="summary" data-structured-input class="is-full" placeholder="摘要">' + esc(item.summary || '') + '</textarea>' +
+            '<input type="text" data-field="date" data-structured-input value="' + esc(item.date || '') + '" placeholder="日期（自动填充）">' +
+            '<input type="text" data-field="readTime" data-structured-input value="' + esc(item.readTime || '') + '" placeholder="阅读时长（自动填充）">' +
+            '<textarea data-field="summary" data-structured-input class="is-full" placeholder="摘要（从文章来源自动填充）">' + esc(item.summary || '') + '</textarea>' +
           '</div>' +
+          '<p class="slide-cover-note"><i class="fas fa-info-circle"></i> 封面图自动使用所选文章/项目的封面，如需修改请编辑对应文章</p>' +
           '<div class="slide-card-footer">' +
             removeButton(index) +
           '</div>' +
@@ -848,6 +842,8 @@
       return {
         slides: rows.map(function (row) {
           return {
+            source: String(row.querySelector('[data-field="source"]').value || '').trim() || 'article',
+            refId: String(row.querySelector('[data-field="refId"]').value || '').trim(),
             chip: String(row.querySelector('[data-field="chip"]').value || '').trim(),
             date: String(row.querySelector('[data-field="date"]').value || '').trim(),
             readTime: String(row.querySelector('[data-field="readTime"]').value || '').trim(),
@@ -857,7 +853,7 @@
             imageUrl: String(row.querySelector('[data-field="imageUrl"]').value || '').trim()
           };
         }).filter(function (item) {
-          return item.chip || item.date || item.readTime || item.title || item.summary || item.visualClass || item.imageUrl;
+          return item.refId || item.title || item.summary;
         })
       };
     }
@@ -942,7 +938,7 @@
 
   function appendStructuredEntry(type, content) {
     if (type === 'cards') content.cards.push({ tag: '', title: '', description: '', tone: '' });
-    if (type === 'slides') content.slides.push({ chip: '', date: '', readTime: '', title: '', summary: '', visualClass: '', imageUrl: '' });
+    if (type === 'slides') content.slides.push({ source: 'article', refId: '', chip: '', date: '', readTime: '', title: '', summary: '', visualClass: '', imageUrl: '' });
     if (type === 'stats') content.stats.push({ key: '', label: '' });
     if (type === 'summary') content.items.push({ title: '', value: '' });
     if (type === 'timeline') content.items.push({ title: '', time: '', description: '' });
@@ -1081,6 +1077,8 @@
       var el = row.querySelector('[data-field="' + field + '"]');
       if (el) { el.value = value || ''; el.dispatchEvent(new Event('input', { bubbles: true })); }
     };
+    setVal('refId', article.id);
+    setVal('source', 'article');
     setVal('title', article.title);
     setVal('summary', article.summary || '');
     setVal('imageUrl', article.cover_url || '');
@@ -1089,15 +1087,6 @@
     if (article.created_at) {
       setVal('date', article.created_at.slice(0, 10));
     }
-    // 更新图片预览
-    var preview = row.querySelector('[data-slide-preview]');
-    var previewImg = row.querySelector('[data-slide-preview-img]');
-    var placeholder = row.querySelector('[data-slide-placeholder]');
-    if (article.cover_url) {
-      if (previewImg) previewImg.src = article.cover_url;
-      if (preview) preview.style.display = '';
-      if (placeholder) placeholder.style.display = 'none';
-    }
   }
 
   function autoFillSlideFromProject(row, project) {
@@ -1105,21 +1094,14 @@
       var el = row.querySelector('[data-field="' + field + '"]');
       if (el) { el.value = value || ''; el.dispatchEvent(new Event('input', { bubbles: true })); }
     };
+    setVal('refId', project.id);
+    setVal('source', 'project');
     setVal('title', project.title);
     setVal('summary', project.description || project.summary || '');
     setVal('imageUrl', project.cover_url || '');
     setVal('chip', Array.isArray(project.tech_tags) && project.tech_tags.length ? project.tech_tags[0] : '');
     if (project.created_at) {
       setVal('date', project.created_at.slice(0, 10));
-    }
-    // 更新图片预览
-    var preview = row.querySelector('[data-slide-preview]');
-    var previewImg = row.querySelector('[data-slide-preview-img]');
-    var placeholder = row.querySelector('[data-slide-placeholder]');
-    if (project.cover_url) {
-      if (previewImg) previewImg.src = project.cover_url;
-      if (preview) preview.style.display = '';
-      if (placeholder) placeholder.style.display = 'none';
     }
   }
 
@@ -1173,13 +1155,6 @@
     var shell = document.createElement('div');
     shell.className = 'form-group is-full structured-editor-shell';
     anchor.insertAdjacentElement('afterend', shell);
-
-    // 共享文件输入（不被 renderEditor 内层 HTML 重置影响）
-    var slideFileInput = document.createElement('input');
-    slideFileInput.type = 'file';
-    slideFileInput.accept = 'image/*';
-    slideFileInput.style.display = 'none';
-    shell.appendChild(slideFileInput);
 
     function renderEditor(forcedType) {
       var parsed = parseContentObject(contentField.value);
@@ -1260,30 +1235,6 @@
     });
 
     shell.addEventListener('click', function (event) {
-      // 轮播：点击图片上传区
-      var uploadZone = event.target.closest('[data-slide-upload]');
-      if (uploadZone && !event.target.closest('[data-slide-remove-image]')) {
-        var slideIdx = uploadZone.getAttribute('data-slide-upload-index');
-        shell.dataset.uploadingSlide = slideIdx;
-        slideFileInput.click();
-        return;
-      }
-
-      // 轮播：移除图片
-      var removeImgBtn = event.target.closest('[data-slide-remove-image]');
-      if (removeImgBtn) {
-        var imgRow = removeImgBtn.closest('[data-structured-row]');
-        var hiddenInput = imgRow ? imgRow.querySelector('[data-field="imageUrl"]') : null;
-        var previewCtn = imgRow ? imgRow.querySelector('[data-slide-preview]') : null;
-        var placeholderEl = imgRow ? imgRow.querySelector('[data-slide-placeholder]') : null;
-        if (hiddenInput) hiddenInput.value = '';
-        if (previewCtn) previewCtn.style.display = 'none';
-        if (placeholderEl) placeholderEl.style.display = '';
-        slideFileInput.value = '';
-        syncToTextarea();
-        return;
-      }
-
       var addButton = event.target.closest('[data-structured-add]');
       var removeButton = event.target.closest('[data-structured-remove]');
       var currentType = shell.dataset.structuredType || 'custom';
@@ -1311,38 +1262,6 @@
           renderEditor();
         }
       });
-    });
-
-    // 轮播图片上传处理
-    slideFileInput.addEventListener('change', async function () {
-      var slideIdx = shell.dataset.uploadingSlide;
-      if (!slideFileInput.files || !slideFileInput.files.length) return;
-
-      var file = slideFileInput.files[0];
-      if (!file.type.startsWith('image/')) return;
-
-      toast('正在上传轮播图片...', 'info');
-      try {
-        var url = await BlogDB.uploadImage(file, 'covers');
-        // 更新对应 slide 的 DOM
-        var row = shell.querySelector('[data-slide-index="' + slideIdx + '"]');
-        if (row) {
-          var hiddenInput = row.querySelector('[data-field="imageUrl"]');
-          var previewCtn = row.querySelector('[data-slide-preview]');
-          var previewImg = row.querySelector('[data-slide-preview-img]');
-          var placeholderEl = row.querySelector('[data-slide-placeholder]');
-          if (hiddenInput) { hiddenInput.value = url; hiddenInput.dispatchEvent(new Event('input', { bubbles: true })); }
-          if (previewImg) previewImg.src = url;
-          if (previewCtn) previewCtn.style.display = '';
-          if (placeholderEl) placeholderEl.style.display = 'none';
-        }
-        toast('图片上传成功', 'success');
-      } catch (err) {
-        toast('图片上传失败: ' + err.message, 'error');
-      } finally {
-        slideFileInput.value = '';
-        delete shell.dataset.uploadingSlide;
-      }
     });
 
     renderEditor();

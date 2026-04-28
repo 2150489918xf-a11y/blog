@@ -672,6 +672,20 @@
   min-width: 200px;
 }
 
+.slide-cover-note {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.slide-cover-note i {
+  color: var(--accent);
+  font-size: 0.85rem;
+}
+
 /* 响应式 */
 @media (max-width: 780px) {
   .slide-fields-grid {

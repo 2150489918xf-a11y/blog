@@ -327,6 +327,25 @@ function buildHomeCarouselSlide(slide, index) {
   `;
 }
 
+var contentCoverCache = null;
+
+async function ensureContentCoverCache() {
+  if (contentCoverCache) return contentCoverCache;
+  var cache = {};
+  try {
+    var articles = await BlogDB.getPublishedArticles();
+    if (articles) {
+      articles.forEach(function (a) { cache[a.id] = a.cover_url || ''; });
+    }
+    var projects = await BlogDB.getPublishedProjects();
+    if (projects) {
+      projects.forEach(function (p) { cache[p.id] = p.cover_url || ''; });
+    }
+  } catch (_) { /* 降级：使用 slide 自带的 imageUrl */ }
+  contentCoverCache = cache;
+  return cache;
+}
+
 function renderHomeCarouselSection(section) {
   if (section.eyebrow && document.getElementById("homeFeatureKicker")) {
     document.getElementById("homeFeatureKicker").textContent = section.eyebrow;
@@ -336,7 +355,7 @@ function renderHomeCarouselSection(section) {
   }
 
   const content = section.content || {};
-  const slides = Array.isArray(content.slides) ? content.slides : [];
+  let slides = Array.isArray(content.slides) ? content.slides : [];
   const track = document.getElementById("heroCarouselTrack");
   const dots = document.getElementById("heroCarouselDots");
 
@@ -344,10 +363,23 @@ function renderHomeCarouselSection(section) {
     return;
   }
 
-  track.innerHTML = slides.map(buildHomeCarouselSlide).join("");
-  dots.innerHTML = slides.map(function (_slide, index) {
-    return `<button class="dot ${index === 0 ? "is-active" : ""}" type="button" data-carousel-dot="${index}" aria-label="第 ${index + 1} 张"></button>`;
-  }).join("");
+  // 异步解析封面图：从 refId 指向的文章/项目获取最新封面
+  ensureContentCoverCache().then(function (coverCache) {
+    slides = slides.map(function (slide) {
+      if (slide.refId && coverCache[slide.refId]) {
+        return Object.assign({}, slide, { imageUrl: coverCache[slide.refId] });
+      }
+      return slide;
+    });
+
+    track.innerHTML = slides.map(buildHomeCarouselSlide).join("");
+    dots.innerHTML = slides.map(function (_slide, index) {
+      return '<button class="dot ' + (index === 0 ? 'is-active' : '') + '" type="button" data-carousel-dot="' + index + '" aria-label="第 ' + (index + 1) + ' 张"></button>';
+    }).join("");
+
+    // 重新初始化轮播（因为 dots 更新了）
+    initCarousel();
+  });
 }
 
 function renderHomeFeedSection(section) {
