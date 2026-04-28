@@ -13,7 +13,9 @@
       "Bash(python -c \"import sys,json; data=json.load\\(sys.stdin\\); print\\(f'{len\\(data\\)} page_sections'\\); [print\\(f' id={d[\\\\\"id\\\\\"][:8]}... page_key={d[\\\\\"page_key\\\\\"]} section_key={d[\\\\\"section_key\\\\\"]} title={d[\\\\\"title\\\\\"]}'\\) for d in data]\")",
       "Bash(curl -s \"https://rgeqokmsbtsqmbtocnij.supabase.co/rest/v1/page_sections?page_key=eq.home&select=*\" -H \"apikey: sb_publishable_zdAE4Lu3bP2KH7tlJQ5Lcg_3up3vQad\" -H \"Authorization: Bearer sb_publishable_zdAE4Lu3bP2KH7tlJQ5Lcg_3up3vQad\")",
       "Bash(python3 -c ':*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(mkdir -p _archive)",
+      "Bash(mv register.html _archive/)"
     ]
   }
 }
