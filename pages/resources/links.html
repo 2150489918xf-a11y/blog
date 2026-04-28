@@ -35,119 +35,29 @@
     <section class="page-hero shell">
       <div class="panel hero-glass">
         <div class="breadcrumbs"><a href="../../index.html">首页</a><span>/</span><span>资源导航</span></div>
-        <p class="eyebrow">Resource Navigation</p>
-        <h1>资源导航</h1>
-        <p class="hero-summary">按学习场景分类整理的常用网站和工具，涵盖语法文档、学习平台、开发工具和设计灵感，方便日常开发时快速查阅。</p>
+        <p class="eyebrow" id="resourcesHeroKicker">Resource Navigation</p>
+        <h1 id="resourcesHeroTitle">资源导航</h1>
+        <p class="hero-summary" id="resourcesHeroSummary">按学习场景分类整理的常用网站和工具，涵盖语法文档、学习平台、开发工具和设计灵感，方便日常开发时快速查阅。</p>
       </div>
     </section>
 
     <div class="shell page-layout">
       <div class="content-stack">
-        <!-- 语法文档 -->
-        <section class="panel link-card">
-          <p class="section-kicker">语法文档</p>
-          <h2>写代码时最常翻的参考站</h2>
-          <div class="links-group">
-            <a class="friend-link" href="https://developer.mozilla.org/zh-CN/" target="_blank" rel="noreferrer noopener">
-              <span>HTML / CSS / JS</span>
-              <strong>MDN Web Docs</strong>
-              <p>Mozilla 维护的前端技术文档，语法说明和示例都很完整，遇到 API 不确定时第一个查的地方。</p>
-            </a>
-            <a class="friend-link" href="https://caniuse.com/" target="_blank" rel="noreferrer noopener">
-              <span>兼容性</span>
-              <strong>Can I use</strong>
-              <p>输入 CSS 属性或 JS API 就能看到各浏览器的支持情况，答辩时解释兼容性考虑很好用。</p>
-            </a>
-            <a class="friend-link" href="https://www.w3school.com.cn/" target="_blank" rel="noreferrer noopener">
-              <span>快速查阅</span>
-              <strong>W3School 中文</strong>
-              <p>每个标签和属性都有在线编辑器可以直接试，适合快速确认某个写法的效果。</p>
-            </a>
-          </div>
-        </section>
-
-        <!-- 学习平台 -->
-        <section class="panel link-card">
-          <p class="section-kicker">学习平台</p>
-          <h2>课堂外的补充学习资源</h2>
-          <div class="links-group">
-            <a class="friend-link" href="https://www.runoob.com/" target="_blank" rel="noreferrer noopener">
-              <span>基础复盘</span>
-              <strong>菜鸟教程</strong>
-              <p>适合快速回顾基础知识点，每个章节都有简洁的代码示例和在线运行环境。</p>
-            </a>
-            <a class="friend-link" href="https://www.bilibili.com/" target="_blank" rel="noreferrer noopener">
-              <span>视频教程</span>
-              <strong>哔哩哔哩</strong>
-              <p>前端学习视频最集中的平台，从零基础入门到框架实战都能找到对应课程。</p>
-            </a>
-            <a class="friend-link" href="https://juejin.cn/" target="_blank" rel="noreferrer noopener">
-              <span>技术社区</span>
-              <strong>稀土掘金</strong>
-              <p>国内前端开发者活跃度最高的社区之一，实战经验和最新技术动态都能看到。</p>
-            </a>
-          </div>
-        </section>
-
-        <!-- 开发工具 -->
-        <section class="panel link-card">
-          <p class="section-kicker">开发工具</p>
-          <h2>日常开发中离不开的工具</h2>
-          <div class="links-group">
-            <a class="friend-link" href="https://github.com/explore" target="_blank" rel="noreferrer noopener">
-              <span>代码托管</span>
-              <strong>GitHub</strong>
-              <p>全球最大的代码托管平台，可以观察优秀项目如何组织代码结构和文档。</p>
-            </a>
-            <a class="friend-link" href="https://code.visualstudio.com/" target="_blank" rel="noreferrer noopener">
-              <span>编辑器</span>
-              <strong>VS Code</strong>
-              <p>微软出品的轻量级代码编辑器，插件生态丰富，前端开发的主力工具。</p>
-            </a>
-            <a class="friend-link" href="https://codepen.io/" target="_blank" rel="noreferrer noopener">
-              <span>在线编码</span>
-              <strong>CodePen</strong>
-              <p>在线编写 HTML/CSS/JS 并实时预览效果，非常适合快速验证某个想法或调试样式。</p>
-            </a>
-          </div>
-        </section>
-
-        <!-- 设计灵感 -->
-        <section class="panel link-card">
-          <p class="section-kicker">设计灵感</p>
-          <h2>页面设计时的参考来源</h2>
-          <div class="links-group">
-            <a class="friend-link" href="https://dribbble.com/" target="_blank" rel="noreferrer noopener">
-              <span>UI 设计</span>
-              <strong>Dribbble</strong>
-              <p>设计师社区，配色方案、卡片布局、页面风格都能在这里找到灵感。</p>
-            </a>
-            <a class="friend-link" href="https://colorhunt.co/" target="_blank" rel="noreferrer noopener">
-              <span>配色方案</span>
-              <strong>Color Hunt</strong>
-              <p>按风格分类的配色卡合集，选颜色时不用自己从零调配，直接挑选组合即可。</p>
-            </a>
-          </div>
-        </section>
+        <div id="resourceGroups"></div>
       </div>
 
       <aside class="side-column">
         <div class="side-sticky-stack">
           <section class="panel toc-card">
-            <p class="section-kicker">分类索引</p>
-            <h2>快速跳转</h2>
-            <ul class="check-list">
-              <li>语法文档 - MDN / Can I use / W3School</li>
-              <li>学习平台 - 菜鸟教程 / B站 / 掘金</li>
-              <li>开发工具 - GitHub / VS Code / CodePen</li>
-              <li>设计灵感 - Dribbble / Color Hunt</li>
-            </ul>
+            <p class="section-kicker" id="resourceJumpKicker">分类索引</p>
+            <h2 id="resourceJumpTitle">快速跳转</h2>
+            <ul class="check-list" id="resourceJumpList"></ul>
           </section>
 
           <section class="panel toc-card">
-            <p class="section-kicker">使用建议</p>
-            <h2>怎么用这些资源</h2>
-            <div class="prose">
+            <p class="section-kicker" id="resourceGuideKicker">使用建议</p>
+            <h2 id="resourceGuideTitle">怎么用这些资源</h2>
+            <div class="prose" id="resourceGuideBody">
               <p>遇到具体语法问题先查 MDN，需要看整体用法时去菜鸟教程。</p>
               <p>样式没灵感就翻 Dribbble，颜色拿不准就去 Color Hunt 找现成方案。</p>
               <p>写完代码想快速验证，CodePen 比本地起服务更方便。</p>
@@ -161,6 +71,8 @@
   <button class="back-to-top" id="backToTop" type="button" aria-label="返回顶部">
     <i class="fas fa-arrow-up"></i>
   </button>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../supabase.js" defer></script>
   <script src="../../script.js" defer></script>
 </body>
 </html>

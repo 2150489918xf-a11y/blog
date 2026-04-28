@@ -35,9 +35,9 @@
     <section class="page-hero shell">
       <div class="panel hero-glass">
         <div class="breadcrumbs"><a href="../../index.html">首页</a><span>/</span><span>关于我</span></div>
-        <p class="eyebrow">About Me</p>
-        <h1>关于我</h1>
-        <p class="hero-summary">软件工程专业在读，热衷前端开发与 AI 智能体技术探索。这里记录了我的基本信息、技术栈、学习经历和对未来方向的思考。</p>
+        <p class="eyebrow" id="resumeHeroKicker">About Me</p>
+        <h1 id="resumeHeroTitle">关于我</h1>
+        <p class="hero-summary" id="resumeHeroSummary">软件工程专业在读，热衷前端开发与 AI 智能体技术探索。这里记录了我的基本信息、技术栈、学习经历和对未来方向的思考。</p>
       </div>
     </section>
 
@@ -46,14 +46,18 @@
         <!-- 个人资料卡 -->
         <section class="panel">
           <div class="profile-banner">
-            <div class="profile-avatar">熊</div>
+            <div class="profile-avatar" id="resumeProfileAvatar">熊</div>
             <div class="profile-detail">
-              <h2>熊帆</h2>
-              <p>东华理工大学 · 软件工程专业 · 大二在读</p>
-              <p>专注前端开发与 AI Agent 方向，喜欢用技术解决实际问题</p>
+              <h2 id="resumeProfileName">熊帆</h2>
+              <p id="resumeProfileMeta">东华理工大学 · 软件工程专业 · 大二在读</p>
+              <p id="resumeProfileSummary">专注前端开发与 AI Agent 方向，喜欢用技术解决实际问题</p>
             </div>
           </div>
         </section>
+
+        <div id="profileBlocksContainer" hidden></div>
+
+        <div id="profileBlocksFallback">
 
         <!-- 基本信息 -->
         <section class="panel content-card">
@@ -148,10 +152,14 @@
             <p>目前最想提升的能力是工程化思维和系统设计能力，希望从"能写出来"进化到"写得好、组织得好"。</p>
           </div>
         </section>
+        </div>
       </div>
 
       <aside class="side-column">
         <div class="side-sticky-stack">
+          <div id="profileAsideBlocksContainer" hidden></div>
+
+          <div id="profileAsideBlocksFallback">
           <section class="panel toc-card">
             <p class="section-kicker">个人标签</p>
             <h2>关键词</h2>
@@ -185,6 +193,7 @@
               <li>学校：东华理工大学</li>
             </ul>
           </section>
+          </div>
         </div>
       </aside>
     </div>
@@ -193,6 +202,8 @@
   <button class="back-to-top" id="backToTop" type="button" aria-label="返回顶部">
     <i class="fas fa-arrow-up"></i>
   </button>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../supabase.js" defer></script>
   <script src="../../script.js" defer></script>
 </body>
 </html>

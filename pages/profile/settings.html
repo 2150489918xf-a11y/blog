@@ -32,16 +32,17 @@
     <section class="page-hero shell">
       <div class="panel">
         <div class="breadcrumbs"><a href="../../index.html">首页</a><span>/</span><span>个人信息设置</span></div>
-        <p class="eyebrow">指定页面类型。</p>
-        <h1>个人信息设置。</h1>
-        <p class="hero-summary">这一页覆盖文本框、密码框、单选、复选、下拉列表和多行文本框，并在提交后跳转到留言浏览页。</p>
+        <p class="eyebrow" id="settingsHeroKicker">指定页面类型。</p>
+        <h1 id="settingsHeroTitle">个人信息设置。</h1>
+        <p class="hero-summary" id="settingsHeroSummary">这一页覆盖文本框、密码框、单选、复选、下拉列表和多行文本框，并在提交后跳转到留言浏览页。</p>
       </div>
     </section>
 
     <div class="shell page-layout">
       <section class="panel form-card">
-        <p class="section-kicker">信息表单</p>
-        <h2>完善个人资料</h2>
+        <p class="section-kicker" id="settingsFormKicker">信息表单</p>
+        <h2 id="settingsFormTitle">完善个人资料</h2>
+        <p class="form-card-intro" id="settingsFormSummary" hidden></p>
         <form data-form-type="settings">
           <div class="field-grid">
             <label class="field">昵称
@@ -97,8 +98,8 @@
           </label>
 
           <div class="form-actions">
-            <button class="button button-primary" type="submit">保存并查看留言。</button>
-            <button class="button button-secondary" type="reset">重置</button>
+            <button class="button button-primary" type="submit" id="settingsSubmitButton">保存并查看留言。</button>
+            <button class="button button-secondary" type="reset" id="settingsResetButton">重置</button>
           </div>
         </form>
       </section>
@@ -106,14 +107,16 @@
       <aside class="side-column">
         <div class="side-sticky-stack">
           <section class="panel toc-card">
-            <p class="section-kicker">验证说明</p>
-            <h2>校验要点</h2>
+            <p class="section-kicker" id="settingsValidationKicker">验证说明</p>
+            <h2 id="settingsValidationTitle">校验要点</h2>
+            <div id="settingsValidationBody">
             <ul class="check-list">
               <li>昵称至少 2 个字</li>
               <li>学号必须为 8 到 12 位数字</li>
               <li>至少勾选一项兴趣方向</li>
               <li>简介不少于 20 个字</li>
             </ul>
+            </div>
           </section>
         </div>
       </aside>
@@ -123,6 +126,8 @@
   <button class="back-to-top" id="backToTop" type="button" aria-label="返回顶部">
     <i class="fas fa-arrow-up"></i>
   </button>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../supabase.js" defer></script>
   <script src="../../script.js" defer></script>
 </body>
 </html>

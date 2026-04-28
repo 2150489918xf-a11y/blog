@@ -1,4 +1,8 @@
 const LOCAL_STORAGE_KEY = 'butterfly_custom_articles';
+let activeSiteSettings = null;
+let activeNavigationItems = null;
+let activeProfileBlocks = null;
+const pageSectionCache = {};
 
 // 图片压缩工具：将图片文件压缩为 base64 JPEG
 function compressImage(file, maxWidth = 800, quality = 0.7) {
@@ -282,6 +286,99 @@ const friendLinkCatalog = [
   },
 ];
 
+const resourceGroupCatalog = [
+  {
+    kicker: "语法文档",
+    title: "写代码时最常翻的参考站",
+    links: [
+      {
+        title: "MDN Web Docs",
+        desc: "Mozilla 维护的前端技术文档，语法说明和示例都很完整，遇到 API 不确定时第一个查的地方。",
+        href: "https://developer.mozilla.org/zh-CN/",
+        label: "HTML / CSS / JS",
+      },
+      {
+        title: "Can I use",
+        desc: "输入 CSS 属性或 JS API 就能看到各浏览器的支持情况，答辩时解释兼容性考虑很好用。",
+        href: "https://caniuse.com/",
+        label: "兼容性",
+      },
+      {
+        title: "W3School 中文",
+        desc: "每个标签和属性都有在线编辑器可以直接试，适合快速确认某个写法的效果。",
+        href: "https://www.w3school.com.cn/",
+        label: "快速查阅",
+      },
+    ],
+  },
+  {
+    kicker: "学习平台",
+    title: "课堂外的补充学习资源",
+    links: [
+      {
+        title: "菜鸟教程",
+        desc: "适合快速回顾基础知识点，每个章节都有简洁的代码示例和在线运行环境。",
+        href: "https://www.runoob.com/",
+        label: "基础复盘",
+      },
+      {
+        title: "哔哩哔哩",
+        desc: "前端学习视频最集中的平台，从零基础入门到框架实战都能找到对应课程。",
+        href: "https://www.bilibili.com/",
+        label: "视频教程",
+      },
+      {
+        title: "稀土掘金",
+        desc: "国内前端开发者活跃度最高的社区之一，实战经验和最新技术动态都能看到。",
+        href: "https://juejin.cn/",
+        label: "技术社区",
+      },
+    ],
+  },
+  {
+    kicker: "开发工具",
+    title: "日常开发中离不开的工具",
+    links: [
+      {
+        title: "GitHub",
+        desc: "全球最大的代码托管平台，可以观察优秀项目如何组织代码结构和文档。",
+        href: "https://github.com/explore",
+        label: "代码托管",
+      },
+      {
+        title: "VS Code",
+        desc: "微软出品的轻量级代码编辑器，插件生态丰富，前端开发的主力工具。",
+        href: "https://code.visualstudio.com/",
+        label: "编辑器",
+      },
+      {
+        title: "CodePen",
+        desc: "在线编写 HTML/CSS/JS 并实时预览效果，非常适合快速验证某个想法或调试样式。",
+        href: "https://codepen.io/",
+        label: "在线编码",
+      },
+    ],
+  },
+  {
+    kicker: "设计灵感",
+    title: "页面设计时的参考来源",
+    links: [
+      {
+        title: "Dribbble",
+        desc: "设计师社区，配色方案、卡片布局、页面风格都能在这里找到灵感。",
+        href: "https://dribbble.com/",
+        label: "UI 设计",
+      },
+      {
+        title: "Color Hunt",
+        desc: "按风格分类的配色卡合集，选颜色时不用自己从零调配，直接挑选组合即可。",
+        href: "https://colorhunt.co/",
+        label: "配色方案",
+      },
+    ],
+  },
+];
+
 const scheduleRows = [
   { task: "首页轮播与导航联调", time: "周一 9:00-11:00", goal: "完成首页核心交互", status: "已完成" },
   { task: "文章列表与详情编排", time: "周二 14:00-16:00", goal: "打通文章浏览路径", status: "进行中" },
@@ -300,7 +397,7 @@ const defaultMessages = [
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 function resolvePath(target) {
-  if (/^https?:/i.test(target)) {
+  if (/^(https?:|mailto:|tel:|data:|#)/i.test(target)) {
     return target;
   }
 
@@ -310,6 +407,774 @@ function resolvePath(target) {
   }
 
   return `${root}/${target}`;
+}
+
+function normalizeSettingValue(value) {
+  if (value && typeof value === "object" && !Array.isArray(value) && Object.prototype.hasOwnProperty.call(value, "value") && Object.keys(value).length === 1) {
+    return value.value;
+  }
+  return value;
+}
+
+function getSettingValue(settings, key, fallback) {
+  if (!settings || typeof settings[key] === "undefined") {
+    return fallback;
+  }
+  const value = normalizeSettingValue(settings[key]);
+  return typeof value === "undefined" ? fallback : value;
+}
+
+async function loadSiteSettingsFromSupabase() {
+  if (typeof BlogDB === "undefined" || !BlogDB.getSiteSettings) {
+    return null;
+  }
+
+  try {
+    const data = await BlogDB.getSiteSettings();
+    if (data && Object.keys(data).length > 0) {
+      return data;
+    }
+  } catch (_) {
+    // 降级到静态内容
+  }
+
+  return null;
+}
+
+async function resolveSiteSettings() {
+  if (activeSiteSettings) {
+    return activeSiteSettings;
+  }
+  activeSiteSettings = await loadSiteSettingsFromSupabase();
+  return activeSiteSettings;
+}
+
+function deriveNavPageKeyFromHref(href) {
+  if (!href) return "";
+  if (/articles/i.test(href)) return "articles";
+  if (/projects/i.test(href)) return "projects";
+  if (/resources/i.test(href)) return "resources";
+  if (/contact/i.test(href)) return "contact";
+  if (/resume/i.test(href)) return "resume";
+  if (/index\.html$/i.test(href) || /(^|\/)$/i.test(href)) return "home";
+  return "";
+}
+
+function resolveNavIcon(item) {
+  if (item.icon) return item.icon;
+  const pageKey = deriveNavPageKeyFromHref(item.href);
+  const map = {
+    home: "fas fa-home",
+    articles: "fas fa-book",
+    projects: "fas fa-graduation-cap",
+    resources: "fas fa-folder-open",
+    contact: "fas fa-comments",
+    resume: "fas fa-info-circle",
+  };
+  return map[pageKey] || "fas fa-link";
+}
+
+async function loadNavigationItemsFromSupabase() {
+  if (typeof BlogDB === "undefined" || !BlogDB.getNavigationItems) {
+    return null;
+  }
+
+  try {
+    const data = await BlogDB.getNavigationItems();
+    if (data && data.length > 0) {
+      return data;
+    }
+  } catch (_) {
+    // 降级到静态内容
+  }
+
+  return null;
+}
+
+async function resolveNavigationItems() {
+  if (activeNavigationItems) {
+    return activeNavigationItems;
+  }
+  activeNavigationItems = await loadNavigationItemsFromSupabase();
+  return activeNavigationItems;
+}
+
+async function loadPageSectionsFromSupabase(pageKey) {
+  if (typeof BlogDB === "undefined" || !BlogDB.getPageSections) {
+    return null;
+  }
+
+  try {
+    const data = await BlogDB.getPageSections(pageKey);
+    if (data && data.length > 0) {
+      return data;
+    }
+  } catch (_) {
+    // 降级到静态内容
+  }
+
+  return null;
+}
+
+async function resolvePageSections(pageKey) {
+  if (Object.prototype.hasOwnProperty.call(pageSectionCache, pageKey)) {
+    return pageSectionCache[pageKey];
+  }
+  pageSectionCache[pageKey] = await loadPageSectionsFromSupabase(pageKey);
+  return pageSectionCache[pageKey];
+}
+
+async function loadProfileBlocksFromSupabase() {
+  if (typeof BlogDB === "undefined" || !BlogDB.getProfileBlocks) {
+    return null;
+  }
+
+  try {
+    const data = await BlogDB.getProfileBlocks();
+    if (data && data.length > 0) {
+      return data;
+    }
+  } catch (_) {
+    // 降级到静态内容
+  }
+
+  return null;
+}
+
+async function resolveProfileBlocks() {
+  if (activeProfileBlocks) {
+    return activeProfileBlocks;
+  }
+  activeProfileBlocks = await loadProfileBlocksFromSupabase();
+  return activeProfileBlocks;
+}
+
+function applySiteSettings(settings) {
+  if (!settings) {
+    return;
+  }
+
+  const brandName = getSettingValue(settings, "brand_name", null);
+  const brandSubtitle = getSettingValue(settings, "brand_subtitle", null);
+  const brandMark = getSettingValue(settings, "brand_mark", null);
+
+  if (brandMark) {
+    document.querySelectorAll(".brand-mark").forEach((node) => {
+      node.textContent = brandMark;
+    });
+  }
+
+  if (brandName) {
+    document.querySelectorAll(".brand-copy strong").forEach((node) => {
+      node.textContent = brandName;
+    });
+  }
+
+  if (brandSubtitle) {
+    document.querySelectorAll(".brand-copy small").forEach((node) => {
+      node.textContent = brandSubtitle;
+    });
+  }
+
+  if (document.body.dataset.page === "home") {
+    const authorName = getSettingValue(settings, "author_name", null);
+    const authorBio = getSettingValue(settings, "author_bio", null);
+    const authorAvatar = getSettingValue(settings, "author_avatar", null);
+    const socialLinks = getSettingValue(settings, "author_social_links", null);
+
+    if (authorName && document.getElementById("homeAuthorName")) {
+      document.getElementById("homeAuthorName").textContent = authorName;
+    }
+    if (authorBio && document.getElementById("homeAuthorBio")) {
+      document.getElementById("homeAuthorBio").textContent = authorBio;
+    }
+    if (authorAvatar && document.getElementById("homeAuthorAvatar")) {
+      document.getElementById("homeAuthorAvatar").src = resolvePath(authorAvatar);
+    }
+    if (Array.isArray(socialLinks) && document.getElementById("homeAuthorSocials")) {
+      document.getElementById("homeAuthorSocials").innerHTML = socialLinks.map((item) => `
+        <a href="${item.href}" ${item.external === false ? "" : 'target="_blank"'} style="background: ${item.color || '#49b1f5'};" aria-label="${item.label || item.title || 'social'}">
+          <i class="${item.icon || 'fas fa-link'}" aria-hidden="true"></i>
+        </a>
+      `).join("");
+    }
+  }
+
+  if (document.body.dataset.page === "resume") {
+    const profileName = getSettingValue(settings, "author_name", null);
+    const profileMeta = getSettingValue(settings, "resume_meta", null);
+    const profileSummary = getSettingValue(settings, "resume_summary", null);
+    const profileAvatarText = getSettingValue(settings, "resume_avatar_text", null);
+
+    if (profileName && document.getElementById("resumeProfileName")) {
+      document.getElementById("resumeProfileName").textContent = profileName;
+    }
+    if (profileMeta && document.getElementById("resumeProfileMeta")) {
+      document.getElementById("resumeProfileMeta").textContent = profileMeta;
+    }
+    if (profileSummary && document.getElementById("resumeProfileSummary")) {
+      document.getElementById("resumeProfileSummary").textContent = profileSummary;
+    }
+    if (profileAvatarText && document.getElementById("resumeProfileAvatar")) {
+      document.getElementById("resumeProfileAvatar").textContent = profileAvatarText;
+    }
+  }
+}
+
+function renderNavigationMenus(items) {
+  if (!items || !items.length) {
+    return;
+  }
+
+  const topLevel = items.filter((item) => !item.parent_id && item.visible !== false);
+  if (!topLevel.length) {
+    return;
+  }
+
+  const html = topLevel.map((item) => {
+    const pageKey = deriveNavPageKeyFromHref(item.href);
+    const href = resolvePath(String(item.href || "").replace(/^(\.\.\/|\.\/)+/, ""));
+    return `
+      <li>
+        <a class="menu-link" href="${href}" data-nav-page="${pageKey}">
+          <i class="${resolveNavIcon(item)}"></i> ${item.label}
+        </a>
+      </li>
+    `;
+  }).join("");
+
+  document.querySelectorAll(".site-nav .menu-list").forEach((list) => {
+    list.innerHTML = html;
+  });
+}
+
+function buildHomeNoteCard(card, index) {
+  const tones = ["note-card-mint", "note-card-lemon", "note-card-ice", "note-card-rose"];
+  const tone = card.tone || tones[index % tones.length];
+  return `
+    <article class="note-card ${tone}">
+      <span class="note-tag">${card.tag || card.kicker || "内容卡片"}</span>
+      <h3>${card.title || "未命名区块"}</h3>
+      <p>${card.description || ""}</p>
+    </article>
+  `;
+}
+
+function buildHomeCarouselSlide(slide, index) {
+  const tones = ["visual-red", "visual-blue", "visual-green"];
+  const visualClass = slide.visualClass || tones[index % tones.length];
+  const meta = [];
+
+  if (slide.chip) meta.push(`<span class="chip">${slide.chip}</span>`);
+  if (slide.date) meta.push(`<span>${slide.date}</span>`);
+  if (slide.readTime) meta.push(`<span>${slide.readTime}</span>`);
+
+  const visualHtml = slide.imageUrl
+    ? `<div class="carousel-visual ${visualClass}" aria-hidden="true"><img src="${resolvePath(slide.imageUrl)}" alt="${slide.visualAlt || slide.title || "轮播配图"}"></div>`
+    : `
+      <div class="carousel-visual ${visualClass}" aria-hidden="true">
+        <div class="carousel-visual-copy">
+          <span class="chip">${slide.visualLabel || slide.chip || "精选内容"}</span>
+          <strong>${slide.visualTitle || slide.title || "轮播内容"}</strong>
+          <p>${slide.visualSummary || slide.summary || ""}</p>
+        </div>
+      </div>
+    `;
+
+  return `
+    <article class="carousel-slide ${index === 0 ? "is-active" : ""}" data-slide>
+      ${visualHtml}
+      <div class="carousel-content">
+        <div class="carousel-meta-row">${meta.join("")}</div>
+        <h2>${slide.title || "未命名轮播"}</h2>
+        <p>${slide.summary || ""}</p>
+      </div>
+    </article>
+  `;
+}
+
+function renderHomeCarouselSection(section) {
+  if (section.eyebrow && document.getElementById("homeFeatureKicker")) {
+    document.getElementById("homeFeatureKicker").textContent = section.eyebrow;
+  }
+  if (section.title && document.getElementById("homeFeatureTitle")) {
+    document.getElementById("homeFeatureTitle").textContent = section.title;
+  }
+
+  const content = section.content || {};
+  const slides = Array.isArray(content.slides) ? content.slides : [];
+  const track = document.getElementById("heroCarouselTrack");
+  const dots = document.getElementById("heroCarouselDots");
+
+  if (!track || !dots || !slides.length) {
+    return;
+  }
+
+  track.innerHTML = slides.map(buildHomeCarouselSlide).join("");
+  dots.innerHTML = slides.map(function (_slide, index) {
+    return `<button class="dot ${index === 0 ? "is-active" : ""}" type="button" data-carousel-dot="${index}" aria-label="第 ${index + 1} 张"></button>`;
+  }).join("");
+}
+
+function renderHomeFeedSection(section) {
+  if (section.eyebrow && document.getElementById("homeFeedKicker")) {
+    document.getElementById("homeFeedKicker").textContent = section.eyebrow;
+  }
+  if (section.title && document.getElementById("homeFeedTitle")) {
+    document.getElementById("homeFeedTitle").textContent = section.title;
+  }
+
+  const link = document.getElementById("homeFeedLink");
+  if (link && section.description) {
+    link.textContent = section.description;
+  }
+
+  if (link && section.content && section.content.href) {
+    link.href = resolvePath(String(section.content.href).replace(/^(\.\.\/|\.\/)+/, ""));
+  }
+
+  if (section.content && section.content.label && link) {
+    link.textContent = section.content.label;
+  }
+}
+
+function renderHomeAuthorStatsSection(section) {
+  const statsContainer = document.getElementById("homeAuthorStats");
+  const stats = section.content && Array.isArray(section.content.stats) ? section.content.stats : [];
+
+  if (!statsContainer || !stats.length) {
+    return;
+  }
+
+  statsContainer.innerHTML = stats.map(function (item) {
+    return `<div><span>${item.label || item.key || "统计"}</span><strong data-stat-key="${item.key || "articleCount"}">0</strong></div>`;
+  }).join("");
+}
+
+async function applyHomePageSections() {
+  if (document.body.dataset.page !== "home") {
+    return;
+  }
+
+  const sections = await resolvePageSections("home");
+  if (!sections || sections.length === 0) {
+    return;
+  }
+
+  sections.forEach((section) => {
+    if (section.section_key === "note_board") {
+      if (section.eyebrow && document.getElementById("homeRecentKicker")) {
+        document.getElementById("homeRecentKicker").textContent = section.eyebrow;
+      }
+      if (section.title && document.getElementById("homeRecentTitle")) {
+        document.getElementById("homeRecentTitle").textContent = section.title;
+      }
+      if (section.description && document.getElementById("homeRecentLink")) {
+        document.getElementById("homeRecentLink").textContent = section.description;
+      }
+      if (section.content && Array.isArray(section.content.cards) && document.getElementById("homeNoteGrid")) {
+        document.getElementById("homeNoteGrid").innerHTML = section.content.cards.map(buildHomeNoteCard).join("");
+      }
+      return;
+    }
+
+    if (section.section_key === "hero_carousel" || section.section_key === "carousel") {
+      renderHomeCarouselSection(section);
+      return;
+    }
+
+    if (section.section_key === "article_feed" || section.section_key === "latest_articles") {
+      renderHomeFeedSection(section);
+      return;
+    }
+
+    if (section.section_key === "author_card" || section.section_key === "home_author_card") {
+      renderHomeAuthorStatsSection(section);
+    }
+  });
+}
+
+function applyHeroSection(ids, section) {
+  if (section.eyebrow && ids.kicker && document.getElementById(ids.kicker)) {
+    document.getElementById(ids.kicker).textContent = section.eyebrow;
+  }
+  if (section.title && ids.title && document.getElementById(ids.title)) {
+    document.getElementById(ids.title).textContent = section.title;
+  }
+  if (section.description && ids.summary && document.getElementById(ids.summary)) {
+    document.getElementById(ids.summary).textContent = section.description;
+  }
+}
+
+function setElementText(id, value) {
+  const node = document.getElementById(id);
+  if (node && value) {
+    node.textContent = value;
+  }
+}
+
+function renderChecklistItems(items) {
+  return items.map(function (item) {
+    if (typeof item === "string") {
+      return `<li>${item}</li>`;
+    }
+
+    const label = item.text || item.label || item.title || item.value || item.href || "";
+    if (item.href) {
+      const href = resolvePath(String(item.href).replace(/^(\.\.\/|\.\/)+/, ""));
+      return `<li><a href="${href}" ${item.external === false ? "" : 'target="_blank"'}>${label}</a></li>`;
+    }
+
+    return `<li>${label}</li>`;
+  }).join("");
+}
+
+function renderContentLayout(content) {
+  const layout = content && content.layout ? content.layout : "prose";
+
+  if ((layout === "check-list" || layout === "list") && Array.isArray(content.items)) {
+    return `<ul class="check-list">${renderChecklistItems(content.items)}</ul>`;
+  }
+
+  if ((layout === "badge-grid" || layout === "badges") && Array.isArray(content.items)) {
+    return renderProfileBadgeGrid(content.items);
+  }
+
+  if ((layout === "summary-grid" || layout === "summary") && Array.isArray(content.items)) {
+    return renderProfileSummaryGrid(content.items);
+  }
+
+  if (layout === "timeline" && Array.isArray(content.items)) {
+    return renderProfileTimeline(content.items);
+  }
+
+  if (Array.isArray(content.paragraphs)) {
+    return renderProfileProse(content.paragraphs);
+  }
+
+  if (typeof content === "string") {
+    return renderProfileProse([content]);
+  }
+
+  return renderProfileProse([JSON.stringify(content || {}, null, 2)]);
+}
+
+function applySectionContent(containerId, content) {
+  const container = document.getElementById(containerId);
+  if (!container || !content) {
+    return;
+  }
+
+  container.innerHTML = renderContentLayout(content);
+}
+
+async function applyResourcesPageSections() {
+  if (document.body.dataset.page !== "resources") {
+    return;
+  }
+
+  const sections = await resolvePageSections("resources");
+  if (!sections || sections.length === 0) {
+    return;
+  }
+
+  sections.forEach((section) => {
+    if (section.section_key === "hero" || section.section_key === "page_hero") {
+      applyHeroSection({
+        kicker: "resourcesHeroKicker",
+        title: "resourcesHeroTitle",
+        summary: "resourcesHeroSummary",
+      }, section);
+      return;
+    }
+
+    if (section.section_key === "jump_list_card") {
+      setElementText("resourceJumpKicker", section.eyebrow);
+      setElementText("resourceJumpTitle", section.title);
+      return;
+    }
+
+    if (section.section_key === "usage_tips_card") {
+      setElementText("resourceGuideKicker", section.eyebrow);
+      setElementText("resourceGuideTitle", section.title);
+      applySectionContent("resourceGuideBody", section.content || { layout: "prose", paragraphs: [section.description || ""] });
+    }
+  });
+}
+
+async function applyContactPageSections() {
+  if (document.body.dataset.page !== "contact") {
+    return;
+  }
+
+  const sections = await resolvePageSections("contact");
+  if (!sections || sections.length === 0) {
+    return;
+  }
+
+  sections.forEach((section) => {
+    if (section.section_key === "hero" || section.section_key === "page_hero") {
+      applyHeroSection({
+        kicker: "contactHeroKicker",
+        title: "contactHeroTitle",
+        summary: "contactHeroSummary",
+      }, section);
+      return;
+    }
+
+    if (section.section_key === "message_list_card") {
+      setElementText("contactMessageKicker", section.eyebrow);
+      setElementText("contactMessageTitle", section.title);
+      setElementText("contactMessageIntro", section.description);
+      return;
+    }
+
+    if (section.section_key === "message_form_card") {
+      setElementText("contactFormKicker", section.eyebrow);
+      setElementText("contactFormTitle", section.title);
+      if (section.content && section.content.submitText && document.getElementById("contactSubmitButton")) {
+        document.getElementById("contactSubmitButton").textContent = section.content.submitText;
+      }
+      return;
+    }
+
+    if (section.section_key === "contact_info_card") {
+      setElementText("contactInfoKicker", section.eyebrow);
+      setElementText("contactInfoTitle", section.title);
+      applySectionContent("contactInfoBody", section.content || { layout: "check-list", items: [section.description || ""] });
+      return;
+    }
+
+    if (section.section_key === "page_note_card") {
+      setElementText("contactNoteKicker", section.eyebrow);
+      setElementText("contactNoteTitle", section.title);
+      applySectionContent("contactNoteBody", section.content || { layout: "prose", paragraphs: [section.description || ""] });
+    }
+  });
+}
+
+async function applySettingsPageSections() {
+  if (document.body.dataset.page !== "settings") {
+    return;
+  }
+
+  const sections = await resolvePageSections("settings");
+  if (!sections || sections.length === 0) {
+    return;
+  }
+
+  sections.forEach((section) => {
+    if (section.section_key === "hero" || section.section_key === "page_hero") {
+      applyHeroSection({
+        kicker: "settingsHeroKicker",
+        title: "settingsHeroTitle",
+        summary: "settingsHeroSummary",
+      }, section);
+      return;
+    }
+
+    if (section.section_key === "settings_form_card") {
+      setElementText("settingsFormKicker", section.eyebrow);
+      setElementText("settingsFormTitle", section.title);
+
+      const summary = document.getElementById("settingsFormSummary");
+      if (summary) {
+        if (section.description) {
+          summary.hidden = false;
+          summary.textContent = section.description;
+        } else {
+          summary.hidden = true;
+        }
+      }
+
+      if (section.content && section.content.submitText && document.getElementById("settingsSubmitButton")) {
+        document.getElementById("settingsSubmitButton").textContent = section.content.submitText;
+      }
+      if (section.content && section.content.resetText && document.getElementById("settingsResetButton")) {
+        document.getElementById("settingsResetButton").textContent = section.content.resetText;
+      }
+      return;
+    }
+
+    if (section.section_key === "validation_card") {
+      setElementText("settingsValidationKicker", section.eyebrow);
+      setElementText("settingsValidationTitle", section.title);
+      applySectionContent("settingsValidationBody", section.content || { layout: "check-list", items: [section.description || ""] });
+    }
+  });
+}
+
+async function applyResumePageSections() {
+  if (document.body.dataset.page !== "resume") {
+    return;
+  }
+
+  const sections = await resolvePageSections("resume");
+  if (!sections || sections.length === 0) {
+    return;
+  }
+
+  sections.forEach((section) => {
+    if (section.section_key !== "hero" && section.section_key !== "page_hero") {
+      return;
+    }
+
+    if (section.eyebrow && document.getElementById("resumeHeroKicker")) {
+      document.getElementById("resumeHeroKicker").textContent = section.eyebrow;
+    }
+    if (section.title && document.getElementById("resumeHeroTitle")) {
+      document.getElementById("resumeHeroTitle").textContent = section.title;
+    }
+    if (section.description && document.getElementById("resumeHeroSummary")) {
+      document.getElementById("resumeHeroSummary").textContent = section.description;
+    }
+  });
+}
+
+function renderProfileSummaryGrid(items) {
+  return `
+    <div class="summary-grid">
+      ${items.map((item) => `<article class="summary-card"><h3>${item.title}</h3><p>${item.value}</p></article>`).join("")}
+    </div>
+  `;
+}
+
+function renderProfileBadgeGrid(items) {
+  return `<div class="badge-grid">${items.map((item) => `<span class="badge">${item}</span>`).join("")}</div>`;
+}
+
+function renderProfileTimeline(items) {
+  return `
+    <div>
+      ${items.map((item) => `
+        <div class="timeline-entry">
+          <div class="timeline-dot"></div>
+          <div class="timeline-body">
+            <h3>${item.title}</h3>
+            <time>${item.time || ""}</time>
+            <p>${item.description || ""}</p>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+function renderProfileProse(paragraphs) {
+  return `<div class="prose">${paragraphs.map((text) => `<p>${text}</p>`).join("")}</div>`;
+}
+
+function renderProfileChecklist(items) {
+  return `<ul class="check-list">${renderChecklistItems(items)}</ul>`;
+}
+
+function isAsideProfileBlock(block) {
+  const content = block.content || {};
+  return content.position === "aside" || content.position === "sidebar" || content.area === "aside";
+}
+
+function renderDynamicProfileBlock(block) {
+  const content = block.content || {};
+  const layout = content.layout || block.block_key;
+  let bodyHtml = "";
+
+  if ((layout === "summary-grid" || layout === "basic_info") && Array.isArray(content.items)) {
+    bodyHtml = renderProfileSummaryGrid(content.items);
+  } else if ((layout === "badge-grid" || layout === "skills" || layout === "interests") && Array.isArray(content.items)) {
+    bodyHtml = renderProfileBadgeGrid(content.items);
+  } else if ((layout === "timeline" || layout === "experience") && Array.isArray(content.items)) {
+    bodyHtml = renderProfileTimeline(content.items);
+  } else if ((layout === "check-list" || layout === "list") && Array.isArray(content.items)) {
+    bodyHtml = renderProfileChecklist(content.items);
+  } else if ((layout === "prose" || layout === "self_evaluation") && Array.isArray(content.paragraphs)) {
+    bodyHtml = renderProfileProse(content.paragraphs);
+  } else {
+    bodyHtml = `<div class="prose"><p>${typeof content === "string" ? content : JSON.stringify(content)}</p></div>`;
+  }
+
+  return `
+    <section class="panel content-card">
+      <p class="section-kicker">${block.subtitle || "区块内容"}</p>
+      <h2>${block.title}</h2>
+      ${bodyHtml}
+    </section>
+  `;
+}
+
+function renderProfileAsideBlock(block) {
+  const content = block.content || {};
+  const layout = content.layout || "check-list";
+  let bodyHtml = "";
+
+  if ((layout === "check-list" || layout === "list") && Array.isArray(content.items)) {
+    bodyHtml = renderProfileChecklist(content.items);
+  } else if ((layout === "prose" || layout === "text") && Array.isArray(content.paragraphs)) {
+    bodyHtml = renderProfileProse(content.paragraphs);
+  } else if (Array.isArray(content.items)) {
+    bodyHtml = renderProfileChecklist(content.items);
+  } else {
+    bodyHtml = `<div class="prose"><p>${typeof content === "string" ? content : JSON.stringify(content)}</p></div>`;
+  }
+
+  return `
+    <section class="panel toc-card">
+      <p class="section-kicker">${block.subtitle || "侧栏区块"}</p>
+      <h2>${block.title}</h2>
+      ${bodyHtml}
+    </section>
+  `;
+}
+
+async function applyProfileBlocks() {
+  if (document.body.dataset.page !== "resume") {
+    return;
+  }
+
+  const container = document.getElementById("profileBlocksContainer");
+  const fallback = document.getElementById("profileBlocksFallback");
+  const asideContainer = document.getElementById("profileAsideBlocksContainer");
+  const asideFallback = document.getElementById("profileAsideBlocksFallback");
+  if (!container || !fallback) {
+    return;
+  }
+
+  const blocks = await resolveProfileBlocks();
+  if (!blocks || blocks.length === 0) {
+    return;
+  }
+
+  const mainBlocks = blocks.filter(function (block) { return !isAsideProfileBlock(block); });
+  const asideBlocks = blocks.filter(isAsideProfileBlock);
+
+  if (mainBlocks.length > 0) {
+    container.hidden = false;
+    fallback.hidden = true;
+    container.innerHTML = mainBlocks.map(renderDynamicProfileBlock).join("");
+  }
+
+  if (asideContainer && asideFallback && asideBlocks.length > 0) {
+    asideContainer.hidden = false;
+    asideFallback.hidden = true;
+    asideContainer.innerHTML = asideBlocks.map(renderProfileAsideBlock).join("");
+  }
+}
+
+async function applyRemotePageConfiguration() {
+  const [settings, navItems] = await Promise.all([
+    resolveSiteSettings(),
+    resolveNavigationItems(),
+  ]);
+
+  applySiteSettings(settings);
+  renderNavigationMenus(navItems);
+  await Promise.all([
+    applyHomePageSections(),
+    applyResumePageSections(),
+    applyResourcesPageSections(),
+    applyContactPageSections(),
+    applySettingsPageSections(),
+    applyProfileBlocks(),
+  ]);
 }
 
 function renderClock() {
@@ -563,31 +1428,139 @@ function createProjectCard(project, index) {
   `;
 }
 
+function mapSupabaseProject(project) {
+  const date = project.created_at
+    ? new Date(project.created_at).toISOString().slice(0, 10)
+    : "2026-04-27";
+  return {
+    title: project.title,
+    category: "项目实战",
+    date,
+    summary: project.summary || project.description || "",
+    path: project.demo_url || project.repo_url || "pages/projects/index.html",
+    readTime: project.status || "进行中",
+    tags: project.tech_tags || [],
+    cover: project.cover_url || "",
+    id: project.id,
+  };
+}
+
+async function loadProjectsFromSupabase() {
+  if (typeof BlogDB === "undefined" || !BlogDB.getPublishedProjects) {
+    return null;
+  }
+
+  try {
+    const data = await BlogDB.getPublishedProjects();
+    if (data && data.length > 0) {
+      return data.map(mapSupabaseProject);
+    }
+  } catch (_) {
+    /* 降级到本地数据 */
+  }
+
+  return null;
+}
+
+let activeProjectCatalog = null;
+
+async function resolveProjectCatalog() {
+  if (activeProjectCatalog) return activeProjectCatalog;
+  const remote = await loadProjectsFromSupabase();
+  activeProjectCatalog = remote || projectCatalog;
+  return activeProjectCatalog;
+}
+
 function renderProjectCards() {
   // 实战教程页全量列表
   const pageGrid = document.getElementById("projectList") || document.getElementById("projectCatalogGrid");
   if (pageGrid) {
-    pageGrid.innerHTML = projectCatalog.map(createProjectCard).join("");
+    resolveProjectCatalog().then((catalog) => {
+      pageGrid.innerHTML = catalog.map(createProjectCard).join("");
+    });
   }
 }
 
-function renderFriendLinks() {
-  const container = document.getElementById("friendLinks");
-  if (!container) {
-    return;
+function mapSupabaseResourceGroup(group) {
+  return {
+    kicker: group.name,
+    title: group.description || group.name,
+    links: (group.links || []).map((link) => ({
+      title: link.title,
+      desc: link.description || "",
+      href: link.href,
+      label: link.label || "资源链接",
+    })),
+  };
+}
+
+async function loadResourceGroupsFromSupabase() {
+  if (typeof BlogDB === "undefined" || !BlogDB.getPublishedResourceGroups) {
+    return null;
   }
 
-  container.innerHTML = friendLinkCatalog
-    .map(
-      (item) => `
-        <a class="friend-link" href="${item.href}" target="_blank" rel="noreferrer noopener">
-          <span>${item.label}</span>
-          <strong>${item.title}</strong>
-          <p>${item.desc}</p>
-        </a>
-      `,
-    )
-    .join("");
+  try {
+    const data = await BlogDB.getPublishedResourceGroups();
+    if (data && data.length > 0) {
+      return data.map(mapSupabaseResourceGroup);
+    }
+  } catch (_) {
+    /* 降级到本地数据 */
+  }
+
+  return null;
+}
+
+let activeResourceGroups = null;
+
+async function resolveResourceGroups() {
+  if (activeResourceGroups) return activeResourceGroups;
+  const remote = await loadResourceGroupsFromSupabase();
+  activeResourceGroups = remote || resourceGroupCatalog;
+  return activeResourceGroups;
+}
+
+function createFriendLinkCard(item) {
+  return `
+    <a class="friend-link" href="${item.href}" target="_blank" rel="noreferrer noopener">
+      <span>${item.label}</span>
+      <strong>${item.title}</strong>
+      <p>${item.desc}</p>
+    </a>
+  `;
+}
+
+function createResourceGroupSection(group) {
+  return `
+    <section class="panel link-card">
+      <p class="section-kicker">${group.kicker}</p>
+      <h2>${group.title}</h2>
+      <div class="links-group">
+        ${group.links.map(createFriendLinkCard).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function renderFriendLinks() {
+  const homeContainer = document.getElementById("friendLinks");
+  if (homeContainer) {
+    homeContainer.innerHTML = friendLinkCatalog.map(createFriendLinkCard).join("");
+  }
+
+  const resourceContainer = document.getElementById("resourceGroups");
+  if (resourceContainer) {
+    resolveResourceGroups().then((groups) => {
+      resourceContainer.innerHTML = groups.map(createResourceGroupSection).join("");
+
+      const jumpList = document.getElementById("resourceJumpList");
+      if (jumpList) {
+        jumpList.innerHTML = groups
+          .map((group) => `<li>${group.kicker} - ${group.links.map((item) => item.title).join(" / ")}</li>`)
+          .join("");
+      }
+    });
+  }
 }
 
 function countValues(values) {
@@ -600,18 +1573,27 @@ function countValues(values) {
 function renderSidebarDirectory() {
   resolveArticleCatalog().then(function (catalog) {
     const sortedArticles = [...catalog].sort(function (a, b) { return new Date(b.date) - new Date(a.date); });
+    const categories = countValues(catalog.map(function (a) { return a.category; }));
+    const tags = countValues(catalog.flatMap(function (a) { return a.tags || []; }));
 
     // 同步个人资料卡统计数据
     const authorCardStats = document.querySelector(".profile-hero-card.butterfly-author .profile-hero-stats");
     if (authorCardStats) {
-      const categories = countValues(catalog.map(function (a) { return a.category; }));
-      const tags = countValues(catalog.flatMap(function (a) { return a.tags || []; }));
+      const statMap = {
+        articleCount: catalog.length,
+        categoryCount: categories.size,
+        tagCount: tags.size,
+        timelineCount: catalog.length,
+      };
       const statValues = authorCardStats.querySelectorAll("strong");
-      if (statValues.length >= 4) {
-        statValues[0].textContent = catalog.length;
-        statValues[1].textContent = categories.size;
-        statValues[2].textContent = tags.size;
-        statValues[3].textContent = catalog.length;
+      if (statValues.length > 0) {
+        statValues.forEach(function (item, index) {
+          var fallbackKeys = ["articleCount", "categoryCount", "tagCount", "timelineCount"];
+          var key = item.dataset.statKey || fallbackKeys[index];
+          if (key && Object.prototype.hasOwnProperty.call(statMap, key)) {
+            item.textContent = statMap[key];
+          }
+        });
       }
     }
 
@@ -630,7 +1612,6 @@ function renderSidebarDirectory() {
     const categoryPanel = document.getElementById("sidebarCategories");
     const categoryList = document.getElementById("sidebarCategoryList");
     if (categoryPanel && categoryList) {
-      const categories = countValues(catalog.map(function (a) { return a.category; }));
       const h = categoryPanel.querySelector("h2");
       if (h) h.innerHTML = '<i class="fas fa-th-large" aria-hidden="true"></i> ' + categories.size + ' 分类';
       categoryList.innerHTML = Array.from(categories.entries()).map(function (kv, i) { return '<span class="sidebar-pill tone-' + ((i % 6) + 1) + '">' + kv[0] + '<b>' + kv[1] + '</b></span>'; }).join('');
@@ -640,7 +1621,6 @@ function renderSidebarDirectory() {
     const tagPanel = document.getElementById("sidebarTags");
     const tagList = document.getElementById("sidebarTagList");
     if (tagPanel && tagList) {
-      const tags = countValues(catalog.flatMap(function (a) { return a.tags || []; }));
       const h = tagPanel.querySelector("h2");
       if (h) h.innerHTML = '<i class="fas fa-tags" aria-hidden="true"></i> ' + tags.size + ' 标签';
       tagList.innerHTML = Array.from(tags.entries()).map(function (kv, i) { return '<span class="sidebar-pill tone-' + ((i % 6) + 1) + '">' + kv[0] + '<b>' + kv[1] + '</b></span>'; }).join('');
@@ -693,25 +1673,62 @@ function renderScheduleTable() {
     return;
   }
 
-  tbody.innerHTML = scheduleRows
-    .map((row) => {
-      let statusClass = "status-warn";
-      if (row.status === "已完成") {
-        statusClass = "status-good";
-      } else if (row.status === "进行中") {
-        statusClass = "status-hot";
-      }
+  resolveScheduleRows().then((rows) => {
+    tbody.innerHTML = rows
+      .map((row) => {
+        let statusClass = "status-warn";
+        if (row.status === "已完成") {
+          statusClass = "status-good";
+        } else if (row.status === "进行中") {
+          statusClass = "status-hot";
+        }
 
-      return `
-        <tr>
-          <td>${row.task}</td>
-          <td>${row.time}</td>
-          <td>${row.goal}</td>
-          <td><span class="status-pill ${statusClass}">${row.status}</span></td>
-        </tr>
-      `;
-    })
-    .join("");
+        return `
+          <tr>
+            <td>${row.task}</td>
+            <td>${row.time}</td>
+            <td>${row.goal}</td>
+            <td><span class="status-pill ${statusClass}">${row.status}</span></td>
+          </tr>
+        `;
+      })
+      .join("");
+  });
+}
+
+function mapSupabaseScheduleItem(item) {
+  return {
+    task: item.task_name,
+    time: item.time_range || "",
+    goal: item.goal || "",
+    status: item.status || "待开始",
+  };
+}
+
+async function loadScheduleRowsFromSupabase() {
+  if (typeof BlogDB === "undefined" || !BlogDB.getPublishedScheduleItems) {
+    return null;
+  }
+
+  try {
+    const data = await BlogDB.getPublishedScheduleItems();
+    if (data && data.length > 0) {
+      return data.map(mapSupabaseScheduleItem);
+    }
+  } catch (_) {
+    /* 降级到本地数据 */
+  }
+
+  return null;
+}
+
+let activeScheduleRows = null;
+
+async function resolveScheduleRows() {
+  if (activeScheduleRows) return activeScheduleRows;
+  const remote = await loadScheduleRowsFromSupabase();
+  activeScheduleRows = remote || scheduleRows;
+  return activeScheduleRows;
 }
 
 function initCarousel() {
@@ -1038,8 +2055,9 @@ function initAmbientBackground() {
   }
 }
 
-function boot() {
+async function boot() {
   initAmbientBackground();
+  await applyRemotePageConfiguration();
   markCurrentPage();
   initClock();
   initDropdowns();
@@ -1057,4 +2075,6 @@ function boot() {
   initCursorEffects();
 }
 
-document.addEventListener("DOMContentLoaded", boot);
+document.addEventListener("DOMContentLoaded", function () {
+  boot();
+});
