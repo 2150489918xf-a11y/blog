@@ -146,7 +146,7 @@
         { key: 'value_preview', label: '当前值', format: function (v) { var t = (v || '').replace(/\s+/g, ' '); return t.length > 40 ? t.slice(0, 40) + '...' : t; } }
       ],
       fields: [
-        { name: 'setting_key', label: '设置键名', type: 'datalist', required: true, placeholder: '选择或输入自定义键名', options: staticOptions(['site_name', 'site_description', 'brand_name', 'brand_subtitle', 'brand_mark', 'author_name', 'author_bio', 'author_avatar', 'author_social_links', 'contact_email', 'contact_github', 'contact_school', 'contact_major', 'resume_meta', 'resume_summary', 'resume_avatar_text', 'footer_text', 'hero_title', 'hero_subtitle', 'seo_keywords', 'custom_css']) },
+        { name: 'setting_key', label: '设置键名', type: 'datalist', required: true, placeholder: '选择或输入自定义键名', options: staticOptions(['site_name', 'site_description', 'brand_name', 'brand_subtitle', 'brand_mark', 'author_name', 'author_bio', 'author_avatar', 'author_social_links', 'contact_email', 'contact_github', 'contact_school', 'contact_major', 'contact_grade', 'resume_meta', 'resume_summary', 'resume_avatar_text', 'footer_text', 'hero_title', 'hero_subtitle', 'seo_keywords', 'custom_css']) },
         { name: 'label', label: '中文说明', type: 'text', placeholder: '如：站点名称、作者简介' },
         { name: 'setting_value', label: '设置内容', type: 'textarea', full: true, format: formatJsonText, parse: parseMaybeJson, placeholder: '可输入普通文本，或 JSON 对象 / 数组用于复杂配置' }
       ],

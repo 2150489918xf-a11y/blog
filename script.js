@@ -254,8 +254,8 @@ function applySiteSettings(settings) {
     }
   }
 
-  // 联系方式（联系页、关于页、首页社交链接统一使用 site_settings）
-  var ids = {
+  // 联系方式 + 基本信息（全站统一使用 site_settings）
+  var idMap = {
     contactEmail: 'contact_email',
     contactGithub: 'contact_github',
     contactSchool: 'contact_school',
@@ -263,11 +263,15 @@ function applySiteSettings(settings) {
     resumeContactEmail: 'contact_email',
     resumeContactGithub: 'contact_github',
     resumeContactSchool: 'contact_school',
+    resumeInfoName: 'author_name',
+    resumeInfoSchool: 'contact_school',
+    resumeInfoMajor: 'contact_major',
+    resumeInfoGrade: 'contact_grade',
   };
-  Object.keys(ids).forEach(function (elId) {
+  Object.keys(idMap).forEach(function (elId) {
     var el = document.getElementById(elId);
     if (el) {
-      el.textContent = getSettingValue(settings, ids[elId], el.textContent);
+      el.textContent = getSettingValue(settings, idMap[elId], el.textContent);
     }
   });
 }
