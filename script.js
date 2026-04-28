@@ -422,9 +422,22 @@ function countValues(values) {
 }
 
 function renderSidebarDirectory() {
+  // 克隆并按时间降序排序文章
+  const sortedArticles = [...articleCatalog].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  // 1. 更新文章列表及总数
+  const articlePanel = document.getElementById("sidebarArticles");
   const articleList = document.getElementById("sidebarArticleList");
-  if (articleList) {
-    articleList.innerHTML = articleCatalog
+  if (articlePanel && articleList) {
+    // 动态更新文章总数
+    const titleHeader = articlePanel.querySelector("h2");
+    if (titleHeader) {
+      titleHeader.innerHTML = `<i class="fas fa-file-alt" aria-hidden="true"></i> ${articleCatalog.length} 文章`;
+    }
+
+    // 渲染最近 6 篇文章
+    articleList.innerHTML = sortedArticles
+      .slice(0, 6)
       .map(
         (article) => `
           <li>
@@ -438,25 +451,51 @@ function renderSidebarDirectory() {
       .join("");
   }
 
+  // 2. 更新分类列表及总数
+  const categoryPanel = document.getElementById("sidebarCategories");
   const categoryList = document.getElementById("sidebarCategoryList");
-  if (categoryList) {
+  if (categoryPanel && categoryList) {
     const categories = countValues(articleCatalog.map((article) => article.category));
+    
+    // 动态更新分类总数
+    const titleHeader = categoryPanel.querySelector("h2");
+    if (titleHeader) {
+      titleHeader.innerHTML = `<i class="fas fa-th-large" aria-hidden="true"></i> ${categories.size} 分类`;
+    }
+
     categoryList.innerHTML = Array.from(categories.entries())
       .map(([category, count], index) => `<span class="sidebar-pill tone-${(index % 6) + 1}">${category}<b>${count}</b></span>`)
       .join("");
   }
 
+  // 3. 更新标签列表及总数
+  const tagPanel = document.getElementById("sidebarTags");
   const tagList = document.getElementById("sidebarTagList");
-  if (tagList) {
+  if (tagPanel && tagList) {
     const tags = countValues(articleCatalog.flatMap((article) => article.tags || []));
+
+    // 动态更新标签总数
+    const titleHeader = tagPanel.querySelector("h2");
+    if (titleHeader) {
+      titleHeader.innerHTML = `<i class="fas fa-tags" aria-hidden="true"></i> ${tags.size} 标签`;
+    }
+
     tagList.innerHTML = Array.from(tags.entries())
       .map(([tag, count], index) => `<span class="sidebar-pill tone-${(index % 6) + 1}">${tag}<b>${count}</b></span>`)
       .join("");
   }
 
+  // 4. 更新时间轴列表及总数
+  const timelinePanel = document.getElementById("sidebarTimeline");
   const timelineList = document.getElementById("sidebarTimelineList");
-  if (timelineList) {
-    timelineList.innerHTML = articleCatalog
+  if (timelinePanel && timelineList) {
+    // 动态更新时间轴总数
+    const titleHeader = timelinePanel.querySelector("h2");
+    if (titleHeader) {
+      titleHeader.innerHTML = `<i class="fas fa-clock" aria-hidden="true"></i> ${articleCatalog.length} 时间轴`;
+    }
+
+    timelineList.innerHTML = sortedArticles
       .map((article) => {
         const date = new Date(`${article.date}T00:00:00`);
         const month = date.getMonth() + 1;
