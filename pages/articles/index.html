@@ -6,6 +6,16 @@
   <title>学习笔记库 | 知行成长笔记</title>
   <link rel="stylesheet" href="../../styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    .admin-action-btn:hover {
+      filter: brightness(1.1);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(73,177,245,0.4) !important;
+    }
+    .admin-action-btn:active {
+      transform: translateY(0);
+    }
+  </style>
 </head>
 <body data-page="articles" data-root="../..">
   <header class="site-header">
@@ -38,11 +48,31 @@
       <div class="panel hero-glass">
         <div class="breadcrumbs"><a href="../../index.html">首页</a><span>/</span><span>学习笔记库</span></div>
         <p class="eyebrow">Notes Repository</p>
-        <h1>学习笔记库</h1>
+        
+        <div class="hero-title-row" style="display: flex; align-items: center; gap: 20px; margin-bottom: 8px;">
+          <h1 style="margin-bottom: 0;">学习笔记库</h1>
+          
+          <!-- 管理入口：恢复鲜艳颜色并对齐标题 -->
+          <a href="../../admin.html" class="admin-action-btn" title="管理文章" style="
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 16px;
+            background: linear-gradient(to right, #49b1f5, #ff4d93);
+            border-radius: 20px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(73,177,245,0.3);
+          ">
+            <i class="fas fa-gear"></i>
+            <span>管理后台</span>
+          </a>
+        </div>
+
         <p class="hero-summary">这里集中记录了课程设计过程中的知识点、技术攻克细节及学习心得。所有内容均支持实时分类检索。</p>
-        <a href="../../admin.html" class="button-primary" style="display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 0 20px; text-decoration: none; font-size: 0.9rem;">
-          <i class="fas fa-pen-to-square"></i> 管理文章
-        </a>
       </div>
     </section>
 
