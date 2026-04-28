@@ -1,25 +1,39 @@
 /**
- * 知行成长志 · Supabase 客户端封装
- * 使用方式：在 HTML 中先引入 supabase-js CDN，再引入本文件
- * <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
- * <script src="supabase.js"></script>
+ * BlogDB — Supabase 客户端封装层
+ * ================================
+ * 职责：封装所有 Supabase 数据库和存储操作，提供缓存层和统一的 CRUD 接口。
+ *
+ * 架构：
+ *   - 所有 Supabase API 调用都通过这个模块，不直接在业务代码中裸调
+ *   - 读取操作带 localStorage 缓存（5-10 分钟 TTL），减少网络请求
+ *   - 写入操作自动清除所有缓存，保证数据一致性
+ *   - 客户端按需初始化（lazy init），避免阻塞页面加载
+ *
+ * 使用方式：
+ *   在 HTML 中先加载 Supabase SDK CDN，再加载本文件：
+ *   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+ *   <script src="assets/js/supabase.js"></script>
+ *
+ *   然后通过全局 BlogDB 对象调用：
+ *   BlogDB.getPublishedArticles()     // 获取已发布文章（带缓存）
+ *   BlogDB.uploadImage(file, 'covers') // 上传图片到 Supabase Storage
+ *
+ * 导出对象：window.BlogDB = { getPublishedArticles, createArticle, ... }
  */
 
 (function () {
-  // ============ 配置（部署前替换为你的 Supabase 项目信息）============
+  // ================================================================
+  //  1. 配置 — 连接 Supabase 项目
+  // ================================================================
   const SUPABASE_URL = 'https://rgeqokmsbtsqmbtocnij.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_zdAE4Lu3bP2KH7tlJQ5Lcg_3up3vQad';
 
-  // ============ 初始化 ============
+  // ================================================================
+  //  2. 客户端初始化（lazy init — 首次调用时才创建连接）
+  // ================================================================
   let supabase = null;
 
-  function initSupabase() {
-    if (supabase) return supabase;
-    if (typeof supabase !== 'undefined' && window.supabase && window.supabase.createClient) {
-      // supabase-js CDN 暴露全局 supabase 对象
-    }
-  }
-
+  /** 获取 Supabase 客户端实例，未初始化则自动创建 */
   function getClient() {
     if (!supabase) {
       if (typeof supabase === 'undefined' || !window.supabase) {
@@ -31,6 +45,11 @@
     return supabase;
   }
 
+  // ================================================================
+  //  3. 工具函数 — URL Slug / 缓存 / 错误处理
+  // ================================================================
+
+  /** 将字符串转为 URL 友好的 slug 格式（小写 + 连字符） */
   function makeSlug(value) {
     return String(value || '')
       .trim()
@@ -39,10 +58,17 @@
       .replace(/[^\w-]/g, '');
   }
 
+  /** 构造 localStorage 缓存键名（统一加 blog_cache_ 前缀，方便批量清除） */
   function getCacheKey(name) {
     return 'blog_cache_' + name;
   }
 
+  /**
+   * 从 localStorage 读取缓存数据
+   * @param {string} name   - 缓存名称
+   * @param {number} maxAge - 最大有效期（毫秒），超时返回 null
+   * @returns {*} 缓存数据，过期或不存在返回 null
+   */
   function readCache(name, maxAge) {
     try {
       const cached = JSON.parse(localStorage.getItem(getCacheKey(name)));
@@ -54,6 +80,7 @@
     }
   }
 
+  /** 将数据写入 localStorage 缓存，自动记录时间戳 */
   function writeCache(name, data) {
     localStorage.setItem(getCacheKey(name), JSON.stringify({
       data,
@@ -61,6 +88,10 @@
     }));
   }
 
+  /**
+   * 清除所有内容缓存
+   * 在创建/更新/删除操作后调用，确保下次读取拿到最新数据
+   */
   function clearContentCache() {
     Object.keys(localStorage).forEach((key) => {
       if (key.indexOf('blog_cache_') === 0) {
@@ -69,6 +100,7 @@
     });
   }
 
+  /** 判断是否需要忽略的错误（如表不存在 — 开发阶段正常） */
   function shouldIgnoreContentError(error) {
     return !!(error && /Could not find the table|schema cache/i.test(error.message || ''));
   }
@@ -168,9 +200,119 @@
     clearContentCache();
   }
 
-  // ============ 文章 CRUD ============
+  // ================================================================
+  //  4. 通用 CRUD 操作 — 所有表共用的底层查询/写入/删除
+  // ================================================================
 
-  /** 获取已发布的文章列表（带缓存） */
+  /**
+   * 查询记录列表（支持筛选和排序）
+   * @param {string} table   - 表名
+   * @param {object} options - { filters, orderBy, ascending, select, emptyValue }
+   */
+  async function listRecords(table, options = {}) {
+    const client = getClient();
+    if (!client) return options.emptyValue || [];
+
+    let query = client.from(table).select(options.select || '*');
+
+    if (options.filters) {
+      options.filters.forEach((filter) => {
+        if (filter.operator === 'eq') query = query.eq(filter.column, filter.value);
+        if (filter.operator === 'is') query = query.is(filter.column, filter.value);
+      });
+    }
+
+    if (options.orderBy) {
+      query = query.order(options.orderBy, { ascending: options.ascending !== false });
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      if (!shouldIgnoreContentError(error)) {
+        console.error('[BlogDB]', error.message);
+      }
+      return options.emptyValue || [];
+    }
+
+    return data || options.emptyValue || [];
+  }
+
+  /** 查询单条记录 */
+  async function getRecord(table, id, options = {}) {
+    const client = getClient();
+    if (!client) return null;
+
+    const { data, error } = await client
+      .from(table)
+      .select(options.select || '*')
+      .eq(options.idColumn || 'id', id)
+      .single();
+
+    if (error) {
+      if (!shouldIgnoreContentError(error)) {
+        console.error('[BlogDB]', error.message);
+      }
+      return null;
+    }
+
+    return data;
+  }
+
+  /** 创建记录，成功后自动清除缓存 */
+  async function createRecord(table, payload) {
+    const client = getClient();
+    if (!client) throw new Error('Supabase 未连接');
+
+    const { data, error } = await client
+      .from(table)
+      .insert(payload)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    clearContentCache();
+    return data;
+  }
+
+  /** 更新记录，成功后自动清除缓存 */
+  async function updateRecord(table, id, payload) {
+    const client = getClient();
+    if (!client) throw new Error('Supabase 未连接');
+
+    const { data, error } = await client
+      .from(table)
+      .update(payload)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    clearContentCache();
+    return data;
+  }
+
+  /** 删除记录，成功后自动清除缓存 */
+  async function deleteRecord(table, id) {
+    const client = getClient();
+    if (!client) throw new Error('Supabase 未连接');
+
+    const { error } = await client
+      .from(table)
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+
+    clearContentCache();
+  }
+
+  // ================================================================
+  //  5. 文章 CRUD
+  // ================================================================
+
+  /** 获取已发布的文章列表（5 分钟 localStorage 缓存） */
   async function getPublishedArticles() {
     const cacheTime = 5 * 60 * 1000; // 5 分钟缓存
     const cached = readCache('articles_published', cacheTime);
@@ -297,7 +439,9 @@
     return updateArticle(id, { published });
   }
 
-  // ============ 分类 CRUD ============
+  // ================================================================
+  //  6. 分类 CRUD
+  // ================================================================
 
   async function getCategories() {
     const cacheTime = 10 * 60 * 1000;
@@ -313,7 +457,9 @@
     return data;
   }
 
-  // ============ 项目 CRUD ============
+  // ================================================================
+  //  7. 项目 CRUD
+  // ================================================================
 
   async function getPublishedProjects() {
     const cacheTime = 5 * 60 * 1000;
@@ -360,7 +506,9 @@
     return deleteRecord('projects', id);
   }
 
-  // ============ 资源导航 CRUD ============
+  // ================================================================
+  //  8. 资源导航 CRUD
+  // ================================================================
 
   async function getPublishedResourceGroups() {
     const cacheTime = 5 * 60 * 1000;
@@ -440,7 +588,9 @@
     return deleteRecord('resource_links', id);
   }
 
-  // ============ 表格项 CRUD ============
+  // ================================================================
+  //  9. 学习计划（表格项）CRUD
+  // ================================================================
 
   async function getPublishedScheduleItems() {
     const cacheTime = 5 * 60 * 1000;
@@ -482,7 +632,9 @@
     return deleteRecord('schedule_items', id);
   }
 
-  // ============ 站点配置 CRUD ============
+  // ================================================================
+  //  10. 站点配置 + 导航 + 页面区块 + 简历区块 CRUD
+  // ================================================================
 
   async function getSiteSettings() {
     const cacheTime = 10 * 60 * 1000;
@@ -683,7 +835,9 @@
     return deleteRecord('media_assets', id);
   }
 
-  // ============ 图片上传 ============
+  // ================================================================
+  //  11. 图片上传 / 删除（Supabase Storage）
+  // ================================================================
 
   /** 上传图片到 Storage */
   async function uploadImage(file, folder = 'articles') {
@@ -738,7 +892,9 @@
     if (error) throw error;
   }
 
-  // ============ 管理员认证（可选，简单密码方案）============
+  // ================================================================
+  //  12. 管理员认证（Supabase Auth）
+  // ================================================================
 
   /** 用邮箱 + 密码登录 */
   async function adminLogin(email, password) {
@@ -770,7 +926,9 @@
     return data.session;
   }
 
-  // ============ 连接诊断 ============
+  // ================================================================
+  //  13. 连接诊断
+  // ================================================================
 
   /** 诊断数据库连接状态，结果直接输出到控制台 */
   async function checkConnection() {
@@ -815,7 +973,9 @@
     return { ok: allOk, results };
   }
 
-  // ============ 暴露 API ============
+  // ================================================================
+  //  14. 公开 API — 挂载到 window.BlogDB
+  // ================================================================
   window.BlogDB = {
     getPublishedArticles,
     getAllArticles,

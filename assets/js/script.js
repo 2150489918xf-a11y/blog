@@ -1,11 +1,40 @@
-let activeSiteSettings = null;
-let activeNavigationItems = null;
-let activeProfileBlocks = null;
-const pageSectionCache = {};
+/**
+ * 前台渲染引擎
+ * =============
+ * 职责：从 Supabase 加载数据并渲染到页面 DOM，处理所有前台交互。
+ *
+ * 数据流：
+ *   Supabase → BlogDB（缓存层）→ resolveXxx()（内存缓存）→ applyXxx()（DOM 渲染）
+ *
+ * 启动顺序（boot 函数）：
+ *   1. applyRemotePageConfiguration() — 站点设置 + 导航（并行）
+ *   2. 各页面区块渲染（根据 data-page 属性分发）
+ *   3. 侧栏目录 / 文章列表 / 轮播初始化
+ *   4. 时钟 / 返回顶部 / 表单处理
+ *
+ * 页面识别：通过 <body data-page="home|articles|projects|..."> 区分页面类型
+ * 路径解析：resolvePath() 根据 data-root 属性拼接相对路径
+ */
 
-// 图片压缩工具：将图片文件压缩为 base64 JPEG
+// ================================================================
+//  0. 模块级缓存 — 避免重复请求 Supabase
+// ================================================================
+let activeSiteSettings = null;       // 站点设置 { key: value }
+let activeNavigationItems = null;    // 导航菜单项
+let activeProfileBlocks = null;     // 简历区块
+const pageSectionCache = {};         // 页面区块缓存 { pageKey: [...] }
+
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
+// ================================================================
+//  1. 工具函数 — 路径解析 / 设置读取 / Slug 处理
+// ================================================================
+
+/**
+ * 解析相对路径为绝对路径
+ * 如果页面有 data-root 属性（如 data-root="../.."），会拼接前缀
+ * 如果是外部链接（http/mailto/tel），直接返回
+ */
 function resolvePath(target) {
   if (/^(https?:|mailto:|tel:|data:|#)/i.test(target)) {
     return target;
@@ -50,6 +79,10 @@ async function loadSiteSettingsFromSupabase() {
 
   return null;
 }
+
+// ================================================================
+//  2. 数据加载层 — 从 Supabase 获取数据（含内存 + localStorage 双重缓存）
+// ================================================================
 
 async function resolveSiteSettings() {
   if (activeSiteSettings) {
@@ -159,6 +192,10 @@ async function resolveProfileBlocks() {
   return activeProfileBlocks;
 }
 
+// ================================================================
+//  3. 站点设置应用 — 将设置数据注入页面 DOM
+// ================================================================
+
 function applySiteSettings(settings) {
   if (!settings) {
     return;
@@ -265,6 +302,10 @@ function applySiteSettings(settings) {
   });
 }
 
+// ================================================================
+//  4. 导航菜单渲染
+// ================================================================
+
 function renderNavigationMenus(items) {
   if (!items || !items.length) {
     return;
@@ -303,6 +344,10 @@ function buildHomeNoteCard(card, index) {
     </article>
   `;
 }
+
+// ================================================================
+//  5. 首页渲染 — 轮播 / 文章卡片 / 侧栏目录 / 学习计划 / 作者卡
+// ================================================================
 
 function buildHomeCarouselSlide(slide, index) {
   const tones = ["visual-red", "visual-blue", "visual-green"];
@@ -407,6 +452,8 @@ function renderHomeCarouselSection(section) {
     initCarousel();
   });
 }
+
+// ----- 首页文章列表 -----
 
 function renderHomeFeedSection(section) {
   if (section.eyebrow && document.getElementById("homeFeedKicker")) {
@@ -853,6 +900,8 @@ async function applyRemotePageConfiguration() {
   ]);
 }
 
+// ----- 实时时钟（每秒更新）-----
+
 function renderClock() {
   const clock = document.getElementById("siteClock");
   if (!clock) {
@@ -870,6 +919,8 @@ function initClock() {
   renderClock();
   window.setInterval(renderClock, 1000);
 }
+
+// ----- 返回顶部按钮 -----
 
 function initBackToTop() {
   const button = document.getElementById("backToTop");
@@ -1008,6 +1059,10 @@ function renderHomeArticles() {
     });
   }
 }
+
+// ================================================================
+//  6. 文章列表页渲染
+// ================================================================
 
 function renderArticleCatalog() {
   const container = document.getElementById("articleCatalogList");
@@ -1297,6 +1352,10 @@ function initSidebarTabs() {
   });
 }
 
+// ================================================================
+//  9. 学习计划渲染
+// ================================================================
+
 function renderScheduleTable() {
   const container = document.getElementById("scheduleRoadmap");
   if (!container) {
@@ -1376,6 +1435,10 @@ async function resolveScheduleRows() {
   activeScheduleRows = remote || [];
   return activeScheduleRows;
 }
+
+// ================================================================
+//  10. 交互组件 — 轮播控制 / 时钟 / 返回顶部 / 表单处理
+// ================================================================
 
 function initCarousel() {
   const root = document.getElementById("heroCarousel");
@@ -1526,6 +1589,8 @@ function validateForm(form) {
 
   return valid;
 }
+
+// ----- 表单提交处理 -----
 
 function initForms() {
   document.querySelectorAll("form[data-form-type]").forEach((form) => {
