@@ -147,7 +147,8 @@
   }
 
   function inject() {
-    if (document.querySelector('.site-header')) return;
+    // 管理后台有自己的 header，跳过注入
+    if (document.querySelector('.site-header') || document.getElementById('adminPanel')) return;
 
     var root = document.body.dataset.root || '.';
     var header = document.createElement('header');
