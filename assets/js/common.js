@@ -132,3 +132,47 @@
     render();
   }
 })();
+
+/**
+ * 全站顶栏注入
+ * ============
+ * 自动创建统一的 site-header（品牌 + 导航 + 时钟）。
+ * HTML 无需手写 header，路径根据 data-root 自动适配。
+ */
+(function () {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', inject);
+  } else {
+    inject();
+  }
+
+  function inject() {
+    if (document.querySelector('.site-header')) return;
+
+    var root = document.body.dataset.root || '.';
+    var header = document.createElement('header');
+    header.className = 'site-header';
+    header.innerHTML =
+      '<div class="shell site-header-inner">' +
+        '<a class="brand" href="' + root + '/index.html" aria-label="返回首页">' +
+          '<span class="brand-mark">X</span>' +
+          '<span class="brand-copy">' +
+            '<strong>个人博客</strong>' +
+            '<small>课程设计作品集</small>' +
+          '</span>' +
+        '</a>' +
+        '<nav class="site-nav" aria-label="主导航">' +
+          '<ul class="menu-list">' +
+            '<li><a class="menu-link" href="' + root + '/index.html" data-nav-page="home"><i class="fas fa-home"></i> 首页</a></li>' +
+            '<li><a class="menu-link" href="' + root + '/pages/articles/index.html" data-nav-page="articles"><i class="fas fa-book"></i> 学习笔记</a></li>' +
+            '<li><a class="menu-link" href="' + root + '/pages/projects/index.html" data-nav-page="projects"><i class="fas fa-graduation-cap"></i> 实战教程</a></li>' +
+            '<li><a class="menu-link" href="' + root + '/pages/resources/links.html" data-nav-page="resources"><i class="fas fa-folder-open"></i> 资源导航</a></li>' +
+            '<li><a class="menu-link" href="' + root + '/pages/about/contact.html" data-nav-page="contact"><i class="fas fa-comments"></i> 互动交流</a></li>' +
+            '<li><a class="menu-link" href="' + root + '/pages/profile/resume.html" data-nav-page="resume"><i class="fas fa-info-circle"></i> 关于</a></li>' +
+          '</ul>' +
+        '</nav>' +
+        '<div class="clock-panel" id="siteClock" aria-live="polite">正在加载时间...</div>' +
+      '</div>';
+    document.body.prepend(header);
+  }
+})();

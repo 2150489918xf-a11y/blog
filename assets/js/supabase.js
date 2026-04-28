@@ -80,6 +80,21 @@
     }
   }
 
+  /**
+   * 通用缓存查询 — 先查缓存，未命中则查数据库并写入缓存
+   * @param {string} table     - 表名
+   * @param {string} cacheKey  - 缓存键名
+   * @param {number} cacheTime - 缓存有效期（毫秒）
+   * @param {object} options   - 传给 listRecords 的查询选项
+   */
+  async function getCached(table, cacheKey, cacheTime, options) {
+    var cached = readCache(cacheKey, cacheTime);
+    if (cached) return cached;
+    var data = await listRecords(table, options);
+    writeCache(cacheKey, data);
+    return data;
+  }
+
   /** 将数据写入 localStorage 缓存，自动记录时间戳 */
   function writeCache(name, data) {
     localStorage.setItem(getCacheKey(name), JSON.stringify({
@@ -314,35 +329,10 @@
 
   /** 获取已发布的文章列表（5 分钟 localStorage 缓存） */
   async function getPublishedArticles() {
-    const cacheTime = 5 * 60 * 1000; // 5 分钟缓存
-    const cached = readCache('articles_published', cacheTime);
-    if (cached) return cached;
-
-    const client = getClient();
-    if (!client) return null;
-
-    try {
-      const { data, error } = await client
-        .from('articles')
-        .select('*')
-        .eq('published', true)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      // 更新缓存
-      writeCache('articles_published', data);
-
-      return data;
-    } catch (err) {
-      console.error('[BlogDB] 获取文章失败:', err.message);
-      // 返回过期缓存
-      try {
-        const cached = JSON.parse(localStorage.getItem(getCacheKey('articles_published')));
-        if (cached) return cached.data;
-      } catch (_) { /* ignore */ }
-      return null;
-    }
+    return getCached("articles", "articles_published", 5 * 60 * 1000, {
+      filters: [{ column: "published", operator: "eq", value: true }],
+      orderBy: "created_at", ascending: false, emptyValue: null
+    });
   }
 
   /** 获取所有文章（管理员用，含未发布） */
@@ -444,17 +434,9 @@
   // ================================================================
 
   async function getCategories() {
-    const cacheTime = 10 * 60 * 1000;
-    const cached = readCache('categories', cacheTime);
-    if (cached) return cached;
-
-    const data = await listRecords('categories', {
-      orderBy: 'article_count',
-      ascending: false,
-      emptyValue: [],
+    return getCached("categories", "categories", 10 * 60 * 1000, {
+      orderBy: "article_count", ascending: false, emptyValue: []
     });
-    writeCache('categories', data);
-    return data;
   }
 
   // ================================================================
@@ -462,17 +444,10 @@
   // ================================================================
 
   async function getPublishedProjects() {
-    const cacheTime = 5 * 60 * 1000;
-    const cached = readCache('projects_published', cacheTime);
-    if (cached) return cached;
-
-    const data = await listRecords('projects', {
-      filters: [{ column: 'published', operator: 'eq', value: true }],
-      orderBy: 'sort_order',
-      emptyValue: [],
+    return getCached("projects", "projects_published", 5 * 60 * 1000, {
+      filters: [{ column: "published", operator: "eq", value: true }],
+      orderBy: "sort_order", emptyValue: []
     });
-    writeCache('projects_published', data);
-    return data;
   }
 
   async function getAllProjects() {
@@ -593,17 +568,10 @@
   // ================================================================
 
   async function getPublishedScheduleItems() {
-    const cacheTime = 5 * 60 * 1000;
-    const cached = readCache('schedule_items_published', cacheTime);
-    if (cached) return cached;
-
-    const data = await listRecords('schedule_items', {
-      filters: [{ column: 'published', operator: 'eq', value: true }],
-      orderBy: 'sort_order',
-      emptyValue: [],
+    return getCached("schedule_items", "schedule_items_published", 5 * 60 * 1000, {
+      filters: [{ column: "published", operator: "eq", value: true }],
+      orderBy: "sort_order", emptyValue: []
     });
-    writeCache('schedule_items_published', data);
-    return data;
   }
 
   async function getAllScheduleItems() {
@@ -637,21 +605,13 @@
   // ================================================================
 
   async function getSiteSettings() {
-    const cacheTime = 10 * 60 * 1000;
-    const cached = readCache('site_settings_map', cacheTime);
-    if (cached) return cached;
-
-    const rows = await listRecords('site_settings', {
-      orderBy: 'setting_key',
-      emptyValue: [],
+    var rows = await getCached("site_settings", "site_settings_map", 10 * 60 * 1000, {
+      orderBy: "setting_key", emptyValue: []
     });
-
-    const map = rows.reduce((acc, row) => {
+    return rows.reduce(function (acc, row) {
       acc[row.setting_key] = row.setting_value;
       return acc;
     }, {});
-    writeCache('site_settings_map', map);
-    return map;
   }
 
   async function getAllSiteSettings() {
@@ -686,17 +646,10 @@
   }
 
   async function getNavigationItems() {
-    const cacheTime = 10 * 60 * 1000;
-    const cached = readCache('navigation_items_visible', cacheTime);
-    if (cached) return cached;
-
-    const data = await listRecords('navigation_items', {
-      filters: [{ column: 'visible', operator: 'eq', value: true }],
-      orderBy: 'sort_order',
-      emptyValue: [],
+    return getCached("navigation_items", "navigation_items_visible", 10 * 60 * 1000, {
+      filters: [{ column: "visible", operator: "eq", value: true }],
+      orderBy: "sort_order", emptyValue: []
     });
-    writeCache('navigation_items_visible', data);
-    return data;
   }
 
   async function getAllNavigationItems() {
@@ -726,22 +679,13 @@
   }
 
   async function getPageSections(pageKey) {
-    var cacheKey = 'page_sections_' + (pageKey || 'all');
-    var cacheTime = 10 * 60 * 1000;
-    var cached = readCache(cacheKey, cacheTime);
-    if (cached) return cached;
-
+    var cacheKey = "page_sections_" + (pageKey || "all");
     var filters = [];
-    if (pageKey) filters.push({ column: 'page_key', operator: 'eq', value: pageKey });
-    filters.push({ column: 'published', operator: 'eq', value: true });
-
-    var data = await listRecords('page_sections', {
-      filters: filters,
-      orderBy: 'sort_order',
-      emptyValue: [],
+    if (pageKey) filters.push({ column: "page_key", operator: "eq", value: pageKey });
+    filters.push({ column: "published", operator: "eq", value: true });
+    return getCached("page_sections", cacheKey, 10 * 60 * 1000, {
+      filters: filters, orderBy: "sort_order", emptyValue: []
     });
-    writeCache(cacheKey, data);
-    return data;
   }
 
   async function getAllPageSections() {
@@ -773,17 +717,10 @@
   }
 
   async function getProfileBlocks() {
-    var cacheTime = 10 * 60 * 1000;
-    var cached = readCache('profile_blocks_visible', cacheTime);
-    if (cached) return cached;
-
-    var data = await listRecords('profile_blocks', {
-      filters: [{ column: 'published', operator: 'eq', value: true }],
-      orderBy: 'sort_order',
-      emptyValue: [],
+    return getCached("profile_blocks", "profile_blocks_visible", 10 * 60 * 1000, {
+      filters: [{ column: "published", operator: "eq", value: true }],
+      orderBy: "sort_order", emptyValue: []
     });
-    writeCache('profile_blocks_visible', data);
-    return data;
   }
 
   async function getAllProfileBlocks() {
