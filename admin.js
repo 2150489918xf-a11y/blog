@@ -84,14 +84,14 @@
       columns: [
         { key: 'title', label: '标题' },
         { key: 'group_name', label: '所属分组' },
-        { key: 'label', label: '标签' },
+        { key: 'href', label: '链接地址', format: function (v) { var t = (v || '').replace(/^https?:\/\//, ''); return t.length > 30 ? t.slice(0, 30) + '...' : t; } },
         { key: 'published', label: '可见', format: function (value) { return value ? '显示' : '隐藏'; } }
       ],
       fields: [
         { name: 'group_id', label: '所属分组', type: 'select', required: true, options: loadResourceGroupOptions },
         { name: 'title', label: '链接标题', type: 'text', required: true },
-        { name: 'label', label: '短标签', type: 'text' },
-        { name: 'href', label: '跳转地址', type: 'url', required: true, full: true },
+        { name: 'href', label: '跳转地址', type: 'url', required: true, full: true, placeholder: 'https://...' },
+        { name: 'label', label: '角标文字', type: 'text', placeholder: '如：推荐、常用、官方，留空则不显示' },
         { name: 'description', label: '链接描述', type: 'textarea', full: true },
         { name: 'sort_order', label: '排序', type: 'number', defaultValue: 0 },
         { name: 'published', label: '显示该链接', type: 'checkbox', defaultValue: true }
@@ -100,7 +100,8 @@
       createRecord: function (payload) { return BlogDB.createResourceLink(payload); },
       updateRecord: function (id, payload) { return BlogDB.updateResourceLink(id, payload); },
       deleteRecord: function (id) { return BlogDB.deleteResourceLink(id); },
-      toggleRecord: function (id, current) { return BlogDB.updateResourceLink(id, { published: !current }); }
+      toggleRecord: function (id, current) { return BlogDB.updateResourceLink(id, { published: !current }); },
+      afterRender: initGenericWidgets
     },
     schedule: {
       type: 'generic',
