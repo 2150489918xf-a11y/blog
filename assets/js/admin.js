@@ -23,16 +23,38 @@
   //  1. 模块定义 — 每个管理模块的字段、列表列、CRUD 回调
   // ================================================================
   var MODULES = {
-    // ----- 文章模块（特殊：使用专属编辑器，不走通用表单）-----
+    // ----- 文章模块（通用类型，含 Markdown 编辑器）-----
     articles: {
-      type: 'article',
+      type: 'generic',
       kicker: 'Content Manager',
       title: '文章管理',
       description: '管理文章的标题、分类、标签、Markdown 内容和发布状态。',
       actionLabel: '新建文章',
       implemented: true,
-      placeholderTitle: '',
-      placeholderText: ''
+      listTitle: '文章列表',
+      columns: [
+        { key: 'title', label: '标题' },
+        { key: 'category', label: '分类' },
+        { key: 'published', label: '状态', html: true, format: function (v) { return v ? '<span class="status-dot published"></span>已发布' : '<span class="status-dot draft"></span>草稿'; } },
+        { key: 'updated_at', label: '更新时间', format: fmtDate },
+      ],
+      fields: [
+        { name: 'title', label: '文章标题', type: 'text', required: true },
+        { name: 'slug', label: 'URL 路径名', type: 'text', placeholder: '输入标题后自动生成' },
+        { name: 'summary', label: '内容摘要', type: 'textarea', full: true, placeholder: '简要描述文章核心内容...' },
+        { name: 'category', label: '所属分类', type: 'datalist', placeholder: '如：学习笔记', options: loadCategoryOptions },
+        { name: 'read_time', label: '预计阅读（分钟）', type: 'number', defaultValue: 5 },
+        { name: 'cover_url', label: '封面图片', type: 'cover' },
+        { name: 'tags', label: '标签（按回车添加）', type: 'tags', parse: splitCommaValues },
+        { name: 'content', label: '正文内容（Markdown）', type: 'markdown', full: true, placeholder: '在此输入文章正文...' },
+        { name: 'published', label: '立即发布（访客可见）', type: 'checkbox', defaultValue: true },
+      ],
+      loadRecords: function () { return BlogDB.getAllArticles(); },
+      createRecord: function (payload) { return BlogDB.createArticle(payload); },
+      updateRecord: function (id, payload) { return BlogDB.updateArticle(id, payload); },
+      deleteRecord: function (id) { return BlogDB.deleteArticle(id); },
+      toggleRecord: function (id, current) { return BlogDB.togglePublish(id, !current); },
+      afterRender: initGenericWidgets
     },
     projects: {
       type: 'generic',
@@ -361,6 +383,13 @@
     var groups = await BlogDB.getAllResourceGroups();
     return groups.map(function (group) {
       return { label: group.name, value: group.id };
+    });
+  }
+
+  async function loadCategoryOptions() {
+    var categories = await BlogDB.getCategories();
+    return (categories || []).map(function (c) {
+      return { label: c.name, value: c.name };
     });
   }
 
@@ -770,11 +799,9 @@
 
   function syncModuleView() {
     var module = currentModule();
-    var isArticle = module.type === 'article';
-    var showArticleList = isArticle && !state.isEditingArticle;
-    var showArticleEditor = isArticle && state.isEditingArticle;
-    var showGenericList = module.type === 'generic' && module.implemented && !state.isEditingGeneric;
-    var showGenericEditor = module.type === 'generic' && module.implemented && state.isEditingGeneric;
+    var isImplemented = module.implemented;
+    var showList = isImplemented && !state.isEditingGeneric;
+    var showEditor = isImplemented && state.isEditingGeneric;
 
     $moduleKicker.textContent = module.kicker;
     $moduleTitle.textContent = module.title;
@@ -785,14 +812,15 @@
     });
 
     $btnNewArticle.innerHTML = '<i class="fas fa-plus"></i> ' + module.actionLabel;
-    $btnNewArticle.hidden = !module.implemented;
+    $btnNewArticle.hidden = !isImplemented;
 
-    $articleListCard.style.display = showArticleList ? 'block' : 'none';
-    $editorCard.style.display = showArticleEditor ? 'block' : 'none';
-    $moduleListCard.style.display = showGenericList ? 'block' : 'none';
-    $moduleEditorCard.style.display = showGenericEditor ? 'block' : 'none';
+    // 文章和通用模块统一使用 moduleListCard / moduleEditorCard
+    $articleListCard.style.display = 'none';
+    $editorCard.style.display = 'none';
+    $moduleListCard.style.display = showList ? 'block' : 'none';
+    $moduleEditorCard.style.display = showEditor ? 'block' : 'none';
 
-    $modulePlaceholder.hidden = module.implemented;
+    $modulePlaceholder.hidden = isImplemented;
     if (!module.implemented) {
       $modulePlaceholderTitle.textContent = module.placeholderTitle;
       $modulePlaceholderText.textContent = module.placeholderText;
@@ -1275,11 +1303,6 @@
 
   async function refreshActiveModule() {
     var module = currentModule();
-    if (module.type === 'article') {
-      state.recordCache.articles = null;
-      await loadArticleList();
-      return;
-    }
     if (module.type === 'generic' && !state.isEditingGeneric) {
       state.recordCache[state.activeModule] = null;
       await loadGenericList(state.activeModule);
@@ -1389,11 +1412,7 @@
 
     $btnNewArticle.addEventListener('click', function () {
       var module = currentModule();
-      if (module.type === 'article') {
-        showEditor(null);
-        return;
-      }
-      if (module.type === 'generic' && module.implemented) {
+      if (module.implemented) {
         showGenericEditor(state.activeModule, null);
       }
     });
