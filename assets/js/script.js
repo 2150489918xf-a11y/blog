@@ -1611,78 +1611,6 @@ function initForms() {
   });
 }
 
-function initCursorEffects() {
-  const canvas = document.createElement('canvas');
-  canvas.style.cssText = 'position:fixed;top:0;left:0;pointer-events:none;z-index:999999999;width:100vw;height:100vh;';
-  document.body.appendChild(canvas);
-  
-  const ctx = canvas.getContext('2d');
-  const particles = [];
-  let w = window.innerWidth;
-  let h = window.innerHeight;
-
-  canvas.width = w;
-  canvas.height = h;
-  
-  window.addEventListener('resize', () => {
-    w = window.innerWidth;
-    h = window.innerHeight;
-    canvas.width = w;
-    canvas.height = h;
-  });
-  
-  const colors = ['#49b1f5', '#ff7242', '#00c4b6', '#f6d563', '#ff6b81'];
-  
-  function createParticles(x, y) {
-    const particleCount = 15;
-    for (let i = 0; i < particleCount; i++) {
-      particles.push({
-        x: x,
-        y: y,
-        vx: (Math.random() - 0.5) * 10,
-        vy: (Math.random() - 0.5) * 10,
-        size: Math.random() * 3 + 2,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        life: 1,
-        decay: Math.random() * 0.02 + 0.015
-      });
-    }
-  }
-  
-  function render() {
-    ctx.clearRect(0, 0, w, h);
-    for (let i = 0; i < particles.length; i++) {
-      const p = particles[i];
-      p.x += p.vx;
-      p.y += p.vy;
-      p.vy += 0.15; // 重力效果
-      p.life -= p.decay;
-      p.size = Math.max(0, p.size - 0.05);
-      
-      if (p.life <= 0) {
-        particles.splice(i, 1);
-        i--;
-        continue;
-      }
-      
-      ctx.beginPath();
-      // 绘制五角星或圆形，这里为了性能和简洁绘制圆形小碎块
-      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-      ctx.fillStyle = p.color;
-      ctx.globalAlpha = p.life;
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-    requestAnimationFrame(render);
-  }
-  
-  document.addEventListener('click', (e) => {
-    createParticles(e.clientX, e.clientY);
-  });
-  
-  render();
-}
-
 function initAmbientBackground() {
   let background = document.querySelector(".bg-animated");
 
@@ -1728,7 +1656,6 @@ async function boot() {
   initCarousel();
   initSidebarTabs();
   initForms();
-  initCursorEffects();
 }
 
 document.addEventListener("DOMContentLoaded", function () {
