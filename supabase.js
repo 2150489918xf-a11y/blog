@@ -744,6 +744,51 @@
     return data.session;
   }
 
+  // ============ 连接诊断 ============
+
+  /** 诊断数据库连接状态，结果直接输出到控制台 */
+  async function checkConnection() {
+    console.group('[BlogDB] 数据库连接诊断');
+    console.log('项目地址:', SUPABASE_URL);
+
+    const client = getClient();
+    if (!client) {
+      console.error('❌ Supabase SDK 未加载，请检查 CDN 是否可访问');
+      console.groupEnd();
+      return { ok: false, reason: 'SDK 未加载' };
+    }
+    console.log('✅ Supabase 客户端创建成功');
+
+    // 尝试查询主要表
+    const tables = ['articles', 'categories', 'projects', 'resource_groups', 'schedule_items', 'site_settings'];
+    const results = {};
+
+    for (const table of tables) {
+      try {
+        const { data, error } = await client.from(table).select('count', { count: 'exact', head: true });
+        if (error) {
+          console.warn('⚠️', table, '—', error.message);
+          results[table] = { ok: false, error: error.message };
+        } else {
+          console.log('✅', table, '— 连接正常');
+          results[table] = { ok: true };
+        }
+      } catch (err) {
+        console.error('❌', table, '—', err.message);
+        results[table] = { ok: false, error: err.message };
+      }
+    }
+
+    const allOk = Object.values(results).every(r => r.ok);
+    if (allOk) {
+      console.log('🎉 所有数据库表连接正常！');
+    } else {
+      console.warn('⚠️ 部分表无法访问，可能表尚未创建或 RLS 策略限制。请在 Supabase Dashboard 中检查。');
+    }
+    console.groupEnd();
+    return { ok: allOk, results };
+  }
+
   // ============ 暴露 API ============
   window.BlogDB = {
     getPublishedArticles,
@@ -801,5 +846,6 @@
     adminLogout,
     checkAuth,
     getClient,
+    checkConnection,
   };
 })();

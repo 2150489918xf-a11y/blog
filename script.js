@@ -1,4 +1,3 @@
-const LOCAL_STORAGE_KEY = 'butterfly_custom_articles';
 let activeSiteSettings = null;
 let activeNavigationItems = null;
 let activeProfileBlocks = null;
@@ -28,86 +27,6 @@ function compressImage(file, maxWidth = 800, quality = 0.7) {
     reader.readAsDataURL(file);
   });
 }
-
-// 获取 localStorage 使用量
-function getStorageUsage() {
-  let total = 0;
-  for (let key in localStorage) {
-    if (localStorage.hasOwnProperty(key)) {
-      total += localStorage[key].length * 2; // UTF-16 每字符 2 字节
-    }
-  }
-  return { usedMB: (total / 1024 / 1024).toFixed(2), maxMB: 5 };
-}
-
-// 原始静态数据
-const staticArticleCatalog = [];
-
-// 合并本地存储和静态数据
-function loadAllArticles() {
-  const localData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
-  const processedStatic = staticArticleCatalog.map(a => ({ ...a, id: a.id || a.path }));
-  
-  // 排除掉 ID 冲突的静态项（如果本地修改了静态项）
-  const localIds = new Set(localData.map(a => a.id));
-  const filteredStatic = processedStatic.filter(a => !localIds.has(a.id));
-  
-  return [...localData, ...filteredStatic];
-}
-
-// 供全局使用的动态目录
-let articleCatalog = loadAllArticles();
-
-// 管理功能 API
-window.blogAdmin = {
-  save: (article) => {
-    const localData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
-    if (article.id) {
-      const index = localData.findIndex(a => a.id === article.id);
-      if (index > -1) {
-        localData[index] = article; // 更新已有的本地项
-      } else {
-        // 如果修改的是内置文章，则作为新项存入本地（ID保持一致以覆盖）
-        localData.unshift(article); 
-      }
-    } else {
-      localData.unshift({ ...article, id: 'art_' + Date.now() }); // 完全新增
-    }
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localData));
-  },
-  delete: (id) => {
-    let localData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
-    const isLocal = localData.some(a => a.id === id);
-    if (isLocal) {
-      localData = localData.filter(a => a.id !== id);
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localData));
-    } else {
-      // 这里的逻辑可以根据需求调整：内置文章暂不支持从代码中物理删除，只能在内存中过滤
-      alert('内置文章删除仅在本次导出前有效，若要彻底删除请修改 script.js');
-    }
-  },
-  getRawCode: () => {
-    // 导出用于覆盖 articleCatalog 的代码（排除 base64 封面图以减小体积）
-    const articles = loadAllArticles().map(a => {
-      const copy = { ...a };
-      delete copy.cover; // 导出时去掉 base64 封面
-      return copy;
-    });
-    return JSON.stringify(articles, null, 2);
-  },
-  getStorageUsage,
-  clearLocal: () => {
-    localStorage.removeItem(LOCAL_STORAGE_KEY);
-  }
-};
-
-const projectCatalog = [];
-
-const friendLinkCatalog = [];
-
-const resourceGroupCatalog = [];
-const scheduleRows = [];
-const defaultMessages = [];
 
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
@@ -1080,7 +999,7 @@ let activeArticleCatalog = null;
 async function resolveArticleCatalog() {
   if (activeArticleCatalog) return activeArticleCatalog;
   const remote = await loadArticlesFromSupabase();
-  activeArticleCatalog = remote || articleCatalog;
+  activeArticleCatalog = remote || [];
   return activeArticleCatalog;
 }
 
@@ -1194,7 +1113,7 @@ let activeProjectCatalog = null;
 async function resolveProjectCatalog() {
   if (activeProjectCatalog) return activeProjectCatalog;
   const remote = await loadProjectsFromSupabase();
-  activeProjectCatalog = remote || projectCatalog;
+  activeProjectCatalog = remote || [];
   return activeProjectCatalog;
 }
 
@@ -1243,7 +1162,7 @@ let activeResourceGroups = null;
 async function resolveResourceGroups() {
   if (activeResourceGroups) return activeResourceGroups;
   const remote = await loadResourceGroupsFromSupabase();
-  activeResourceGroups = remote || resourceGroupCatalog;
+  activeResourceGroups = remote || [];
   return activeResourceGroups;
 }
 
@@ -1286,11 +1205,6 @@ function createResourceGroupSection(group) {
 }
 
 function renderFriendLinks() {
-  const homeContainer = document.getElementById("friendLinks");
-  if (homeContainer) {
-    homeContainer.innerHTML = friendLinkCatalog.map(createFriendLinkCard).join("");
-  }
-
   const resourceContainer = document.getElementById("resourceGroups");
   if (resourceContainer) {
     resolveResourceGroups().then((groups) => {
@@ -1470,7 +1384,7 @@ let activeScheduleRows = null;
 async function resolveScheduleRows() {
   if (activeScheduleRows) return activeScheduleRows;
   const remote = await loadScheduleRowsFromSupabase();
-  activeScheduleRows = remote || scheduleRows;
+  activeScheduleRows = remote || [];
   return activeScheduleRows;
 }
 
@@ -1532,63 +1446,10 @@ function initCarousel() {
   restart();
 }
 
-function readMessages() {
-  try {
-    const raw = window.sessionStorage.getItem("courseMessages");
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveMessages(messages) {
-  window.sessionStorage.setItem("courseMessages", JSON.stringify(messages));
-}
-
-function pushMessage(message) {
-  const history = readMessages();
-  history.unshift(message);
-  saveMessages(history.slice(0, 8));
-}
-
 function renderMessages() {
   const container = document.getElementById("messageList");
   if (!container) return;
-
-  const history = readMessages();
-  const records = history.length > 0 ? history : defaultMessages;
-  
-  // 生成头像颜色的简单函数
-  const getAvatarColor = (name) => {
-    const colors = ['#49b1f5', '#ff7242', '#00c4b6', '#f6d563', '#ff6b81', '#6f42c1'];
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    return colors[Math.abs(hash) % colors.length];
-  };
-
-  container.innerHTML = records
-    .map((item) => {
-      // 提取姓名，如果是系统提示则用“系”
-      const name = item.title.includes('来自') ? item.title.replace('来自 ', '').replace(' 的留言', '') : '系';
-      const initial = name.charAt(0).toUpperCase();
-      const color = getAvatarColor(name);
-      
-      return `
-        <div class="message-item">
-          <div class="message-avatar" style="background: ${color}">${initial}</div>
-          <div class="message-content">
-            <div class="message-header">
-              <span class="message-author">${item.title}</span>
-              <span class="message-time">${item.time}</span>
-            </div>
-            <div class="message-bubble">
-              ${item.summary}
-            </div>
-          </div>
-        </div>
-      `;
-    })
-    .join("");
+  container.innerHTML = '<div class="empty-state"><strong>暂无留言</strong><div>请在互动交流页面提交留言，或在管理后台添加内容。</div></div>';
 }
 
 function setError(form, fieldName, message) {
@@ -1677,28 +1538,6 @@ function validateForm(form) {
   return valid;
 }
 
-function buildMessage(form) {
-  const type = form.dataset.formType;
-  const now = new Date().toLocaleString("zh-CN", { hour12: false });
-  const data = new FormData(form);
-
-  if (type === "settings") {
-    return {
-      title: "个人信息设置已保存",
-      summary: `昵称 ${data.get("nickname")}，方向 ${data.get("major")}，资料填写已通过前端校验。`,
-      time: now,
-    };
-  }
-
-  
-
-  return {
-    title: `来自 ${data.get("name")} 的留言`,
-    summary: `${data.get("content")}`,
-    time: now,
-  };
-}
-
 function initForms() {
   document.querySelectorAll("form[data-form-type]").forEach((form) => {
     form.addEventListener("submit", (event) => {
@@ -1706,8 +1545,6 @@ function initForms() {
       if (!validateForm(form)) {
         return;
       }
-
-      pushMessage(buildMessage(form));
 
       if (form.dataset.formType === "contact") {
         form.reset();
@@ -1819,6 +1656,10 @@ function initAmbientBackground() {
 
 async function boot() {
   initAmbientBackground();
+  // 数据库连接诊断（结果输出到浏览器控制台）
+  if (typeof BlogDB !== 'undefined' && BlogDB.checkConnection) {
+    BlogDB.checkConnection();
+  }
   await applyRemotePageConfiguration();
   markCurrentPage();
   initClock();
