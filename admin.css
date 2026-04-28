@@ -110,7 +110,7 @@
 
 .admin-layout {
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr) 300px;
+  grid-template-columns: 240px minmax(0, 1fr);
   gap: 20px;
   align-items: start;
 }
@@ -734,10 +734,6 @@
 @media (max-width: 1280px) {
   .admin-layout {
     grid-template-columns: 220px minmax(0, 1fr);
-  }
-
-  .admin-layout > .sidebar-stack {
-    grid-column: 1 / -1;
   }
 
   .admin-sidebar {

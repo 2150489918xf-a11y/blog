@@ -1070,23 +1070,6 @@
     }
   }
 
-  function updateSidebarCounts(articles) {
-    if (!articles) return;
-
-    document.getElementById('sidebarArticleCount').textContent = articles.length;
-
-    var categories = new Set(articles.map(function (article) { return article.category; }).filter(Boolean));
-    document.getElementById('sidebarCategoryCount').textContent = categories.size;
-
-    var tags = new Set();
-    articles.forEach(function (article) {
-      if (article.tags) {
-        article.tags.forEach(function (tag) { tags.add(tag); });
-      }
-    });
-    document.getElementById('sidebarTagCount').textContent = tags.size;
-  }
-
   function currentModule() {
     return MODULES[state.activeModule] || MODULES.articles;
   }
@@ -1141,7 +1124,6 @@
 
     try {
       var articles = await BlogDB.getAllArticles();
-      updateSidebarCounts(articles);
 
       if (articles.length === 0) {
         $articleListContainer.innerHTML = '<p style="color:var(--text-soft);text-align:center;padding:40px;">还没有文章，点击上方「新建文章」开始创作。</p>';
