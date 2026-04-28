@@ -49,7 +49,7 @@
           y: y,
           vx: (Math.random() - 0.5) * 8,
           vy: (Math.random() - 0.5) * 8,
-          size: Math.random() * 3 + 1.5,
+          size: Math.random() * 3 + 2.5,
           color: colors[Math.floor(Math.random() * colors.length)],
           life: 1,
           decay: Math.random() * 0.025 + 0.018,
