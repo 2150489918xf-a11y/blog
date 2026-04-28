@@ -4,30 +4,6 @@ let activeProfileBlocks = null;
 const pageSectionCache = {};
 
 // 图片压缩工具：将图片文件压缩为 base64 JPEG
-function compressImage(file, maxWidth = 800, quality = 0.7) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let w = img.width, h = img.height;
-        if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
-        canvas.width = w;
-        canvas.height = h;
-        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        const base64 = canvas.toDataURL('image/jpeg', quality);
-        const sizeKB = Math.round(base64.length * 3 / 4 / 1024);
-        resolve({ base64, sizeKB, width: w, height: h });
-      };
-      img.onerror = reject;
-      img.src = e.target.result;
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 function resolvePath(target) {
@@ -439,31 +415,6 @@ function renderHomeFeedSection(section) {
   }
 }
 
-function renderSidebarDirectory(counts) {
-  const updateCount = (id, val) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = val;
-  };
-
-  updateCount('sidebarArticleCount', counts.articles);
-  updateCount('sidebarCategoryCount', counts.categories);
-  updateCount('sidebarTagCount', counts.tags);
-  updateCount('sidebarTimelineCount', counts.timeline);
-}
-
-function renderHomeAuthorStatsSection(section) {
-  const statsContainer = document.getElementById("homeAuthorStats");
-  const stats = section.content && Array.isArray(section.content.stats) ? section.content.stats : [];
-
-  if (!statsContainer || !stats.length) {
-    return;
-  }
-
-  statsContainer.innerHTML = stats.map(function (item) {
-    return `<div><span>${item.label || item.key || "统计"}</span><strong data-stat-key="${item.key || "articleCount"}">0</strong></div>`;
-  }).join("");
-}
-
 async function applyHomePageSections() {
   if (document.body.dataset.page !== "home") {
     return;
@@ -501,9 +452,6 @@ async function applyHomePageSections() {
       return;
     }
 
-    if (section.section_key === "author_card" || section.section_key === "home_author_card") {
-      renderHomeAuthorStatsSection(section);
-    }
   });
 }
 
@@ -1081,32 +1029,6 @@ function renderHomeArticles() {
 
 function renderArticleCatalog() {
   const container = document.getElementById("articleCatalogList");
-  if (!container) {
-    return;
-  }
-
-  const buttons = Array.from(document.querySelectorAll("[data-article-filter]"));
-  let currentFilter = "全部";
-
-  const paint = function () {
-    resolveArticleCatalog().then(function (catalog) {
-      const filtered = currentFilter === "全部"
-        ? catalog
-        : catalog.filter(function (article) { return article.category === currentFilter; });
-
-      container.innerHTML = filtered.length > 0
-        ? filtered.map(createArticleCard).join("")
-        : '<div class="empty-state">当前分类暂无文章，切换到其他分类继续查看。</div>';
-
-      buttons.forEach(function (button) {
-        button.classList.toggle("is-active", button.dataset.articleFilter === currentFilter);
-      });
-    });
-  };
-}
-
-function renderArticleCatalog() {
-  const container = document.getElementById("articleCatalogList");
   if (!container) return;
   
   // 从 Supabase 加载（带降级）
@@ -1186,7 +1108,7 @@ async function resolveProjectCatalog() {
 
 function renderProjectCards() {
   // 实战教程页全量列表
-  const pageGrid = document.getElementById("projectList") || document.getElementById("projectCatalogGrid");
+  const pageGrid = document.getElementById("projectList");
   if (pageGrid) {
     resolveProjectCatalog().then((catalog) => {
       pageGrid.innerHTML = catalog.map(createProjectCard).join("");

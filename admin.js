@@ -401,8 +401,7 @@
     return [
       { label: '首页轮播图', value: 'hero_carousel' },
       { label: '首页卡片组', value: 'note_board' },
-      { label: '文章列表', value: 'article_feed' },
-      { label: '作者统计卡片', value: 'author_card' }
+      { label: '文章列表', value: 'article_feed' }
     ];
   }
 
@@ -412,7 +411,7 @@
   }
 
   function sectionLabel(value) {
-    var map = { hero_carousel: '首页轮播', note_board: '首页卡片组', article_feed: '文章列表', author_card: '作者卡片', usage_tips_card: '使用提示', contact_info_card: '联系方式', page_note_card: '页面说明' };
+    var map = { hero_carousel: '首页轮播', note_board: '首页卡片组', article_feed: '文章列表', usage_tips_card: '使用提示', contact_info_card: '联系方式', page_note_card: '页面说明' };
     return map[value] || value || '—';
   }
 
@@ -467,7 +466,6 @@
     if (moduleId === 'page_sections') {
       if (sectionKey === 'note_board') return 'cards';
       if (sectionKey === 'hero_carousel' || sectionKey === 'carousel') return 'slides';
-      if (sectionKey === 'author_card' || sectionKey === 'home_author_card') return 'stats';
       if (sectionKey === 'article_feed') return 'link';
       if (/^(usage_tips_card|page_note_card)$/.test(sectionKey)) return 'prose';
       if (/^(contact_info_card|validation_card)$/.test(sectionKey)) return 'checklist';
