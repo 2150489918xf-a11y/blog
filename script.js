@@ -1521,11 +1521,27 @@ async function resolveResourceGroups() {
 }
 
 function createFriendLinkCard(item) {
+  const initial = item.title.charAt(0).toUpperCase();
+  // 生成背景色的简单逻辑
+  const getLinkColor = (str) => {
+    const colors = ['#49b1f5', '#ff7242', '#00c4b6', '#f6d563', '#ff6b81', '#6f42c1'];
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    return colors[Math.abs(hash) % colors.length];
+  };
+  const color = getLinkColor(item.title);
+
   return `
-    <a class="friend-link" href="${item.href}" target="_blank" rel="noreferrer noopener">
-      <span>${item.label}</span>
-      <strong>${item.title}</strong>
-      <p>${item.desc}</p>
+    <a class="friend-link-card" href="${item.href}" target="_blank" rel="noreferrer noopener">
+      <div class="link-avatar" style="background: ${color}20; color: ${color}">${initial}</div>
+      <div class="link-info">
+        <div class="link-top">
+          <strong>${item.title}</strong>
+          ${item.label ? `<span class="link-tag">${item.label}</span>` : ''}
+        </div>
+        <p>${item.desc}</p>
+      </div>
+      <div class="link-arrow"><i class="fas fa-external-link-alt"></i></div>
     </a>
   `;
 }
@@ -1810,22 +1826,41 @@ function pushMessage(message) {
 
 function renderMessages() {
   const container = document.getElementById("messageList");
-  if (!container) {
-    return;
-  }
+  if (!container) return;
 
   const history = readMessages();
   const records = history.length > 0 ? history : defaultMessages;
+  
+  // 生成头像颜色的简单函数
+  const getAvatarColor = (name) => {
+    const colors = ['#49b1f5', '#ff7242', '#00c4b6', '#f6d563', '#ff6b81', '#6f42c1'];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    return colors[Math.abs(hash) % colors.length];
+  };
+
   container.innerHTML = records
-    .map(
-      (item) => `
-        <article class="summary-card">
-          <span class="chip">${item.time}</span>
-          <h3>${item.title}</h3>
-          <p>${item.summary}</p>
-        </article>
-      `,
-    )
+    .map((item) => {
+      // 提取姓名，如果是系统提示则用“系”
+      const name = item.title.includes('来自') ? item.title.replace('来自 ', '').replace(' 的留言', '') : '系';
+      const initial = name.charAt(0).toUpperCase();
+      const color = getAvatarColor(name);
+      
+      return `
+        <div class="message-item">
+          <div class="message-avatar" style="background: ${color}">${initial}</div>
+          <div class="message-content">
+            <div class="message-header">
+              <span class="message-author">${item.title}</span>
+              <span class="message-time">${item.time}</span>
+            </div>
+            <div class="message-bubble">
+              ${item.summary}
+            </div>
+          </div>
+        </div>
+      `;
+    })
     .join("");
 }
 

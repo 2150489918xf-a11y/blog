@@ -213,9 +213,33 @@
                 <input type="file" id="fileInput" accept="image/*" style="display:none;" multiple>
               </div>
 
-              <div class="editor-layout" style="margin-top: 20px;">
-                <textarea class="editor-input" id="mdInput" placeholder="支持 Markdown 语法写作..."></textarea>
-                <div class="editor-preview" id="mdPreview"></div>
+              <div class="editor-container" style="margin-top: 20px; border: 1px solid rgba(169, 176, 211, 0.3); border-radius: 12px; overflow: hidden; background: rgba(255,255,255,0.5);">
+                <!-- 编辑器工具栏 -->
+                <div class="editor-toolbar" style="padding: 8px 15px; background: rgba(255,255,255,0.8); border-bottom: 1px solid rgba(169, 176, 211, 0.2); display: flex; gap: 15px; align-items: center;">
+                  <div class="tool-group" style="display: flex; gap: 5px;">
+                    <button type="button" onclick="window._insertMD('# ')" title="一级标题" style="padding: 5px 8px; border: 0; background: none; cursor: pointer; color: var(--text-main);"><i class="fas fa-heading"></i>1</button>
+                    <button type="button" onclick="window._insertMD('## ')" title="二级标题" style="padding: 5px 8px; border: 0; background: none; cursor: pointer; color: var(--text-main);"><i class="fas fa-heading"></i>2</button>
+                    <button type="button" onclick="window._insertMD('### ')" title="三级标题" style="padding: 5px 8px; border: 0; background: none; cursor: pointer; color: var(--text-main);"><i class="fas fa-heading"></i>3</button>
+                  </div>
+                  <div class="tool-separator" style="width: 1px; height: 16px; background: rgba(0,0,0,0.1);"></div>
+                  <div class="tool-group" style="display: flex; gap: 5px;">
+                    <button type="button" onclick="window._insertMD('**', '**')" title="加粗" style="padding: 5px 8px; border: 0; background: none; cursor: pointer; color: var(--text-main);"><i class="fas fa-bold"></i></button>
+                    <button type="button" onclick="window._insertMD('*', '*')" title="斜体" style="padding: 5px 8px; border: 0; background: none; cursor: pointer; color: var(--text-main);"><i class="fas fa-italic"></i></button>
+                    <button type="button" onclick="window._insertMD('> ')" title="引用" style="padding: 5px 8px; border: 0; background: none; cursor: pointer; color: var(--text-main);"><i class="fas fa-quote-left"></i></button>
+                  </div>
+                  <div class="tool-separator" style="width: 1px; height: 16px; background: rgba(0,0,0,0.1);"></div>
+                  <div class="tool-group" style="display: flex; gap: 5px;">
+                    <button type="button" onclick="window._insertMD('- ')" title="无序列表" style="padding: 5px 8px; border: 0; background: none; cursor: pointer; color: var(--text-main);"><i class="fas fa-list-ul"></i></button>
+                    <button type="button" onclick="window._insertMD('[', '](url)')" title="超链接" style="padding: 5px 8px; border: 0; background: none; cursor: pointer; color: var(--text-main);"><i class="fas fa-link"></i></button>
+                    <button type="button" id="btnToolbarImg" title="插入图片" style="padding: 5px 8px; border: 0; background: none; cursor: pointer; color: var(--accent);"><i class="fas fa-image"></i></button>
+                  </div>
+                  <span style="margin-left: auto; font-size: 0.75rem; color: var(--text-soft);"><i class="fas fa-info-circle"></i> 支持 Ctrl+V 直接粘贴图片上传</span>
+                </div>
+
+                <div class="editor-layout" style="display: grid; grid-template-columns: 1fr 1fr; height: 500px;">
+                  <textarea class="editor-input" id="mdInput" style="border: 0; border-right: 1px solid rgba(169, 176, 211, 0.1); border-radius: 0; padding: 20px; outline: none; background: transparent;" placeholder="在此粘贴或输入正文..."></textarea>
+                  <div class="editor-preview" id="mdPreview" style="padding: 20px; overflow-y: auto;"></div>
+                </div>
               </div>
 
               <div style="margin-top: 20px; display: flex; align-items: center; gap: 10px;">

@@ -1043,6 +1043,33 @@
     $mdPreview.innerHTML = md2html($mdInput.value);
   }
 
+  // ============ 编辑器工具栏与粘贴功能 ============
+  window._insertMD = function (prefix, suffix) {
+    suffix = suffix || '';
+    var start = $mdInput.selectionStart;
+    var end = $mdInput.selectionEnd;
+    var text = $mdInput.value;
+    var selected = text.substring(start, end);
+    var replacement = prefix + selected + suffix;
+    $mdInput.value = text.substring(0, start) + replacement + text.substring(end);
+    $mdInput.focus();
+    $mdInput.setSelectionRange(start + prefix.length, start + prefix.length + selected.length);
+    updatePreview();
+  };
+
+  async function handlePaste(e) {
+    var items = (e.clipboardData || e.originalEvent.clipboardData).items;
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        var file = items[i].getAsFile();
+        if (file) {
+          e.preventDefault();
+          uploadFile(file);
+        }
+      }
+    }
+  }
+
   function updateSidebarCounts(articles) {
     if (!articles) return;
 
@@ -1460,6 +1487,11 @@
     });
 
     $mdInput.addEventListener('input', updatePreview);
+    $mdInput.addEventListener('paste', handlePaste);
+    var $btnToolbarImg = document.getElementById('btnToolbarImg');
+    if ($btnToolbarImg) {
+      $btnToolbarImg.addEventListener('click', function() { $fileInput.click(); });
+    }
 
     $loginForm.addEventListener('submit', async function (e) {
       e.preventDefault();
