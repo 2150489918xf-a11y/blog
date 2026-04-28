@@ -78,6 +78,20 @@
 }
 
 
+/* ---- 管理面板毛玻璃效果（与前台 panel 一致）---- */
+.hero-glass, .admin-toolbar-card, .admin-placeholder-card,
+#moduleListCard, #moduleEditorCard, #articleListCard, #editorCard {
+  transition: all 0.3s ease;
+}
+.hero-glass:hover, .admin-toolbar-card:hover, .admin-placeholder-card:hover,
+#moduleListCard:hover, #moduleEditorCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px 0 rgba(31,38,135,0.15);
+}
+
+/* 侧边栏不要 lift 效果（position:sticky 会被 transform 破坏） */
+.admin-sidebar:hover { transform: none !important; }
+
 /* ---- 卡片容器 ---- */
 .admin-card {
   background: rgba(255, 255, 255, 0.78);
@@ -638,8 +652,12 @@
   color: var(--text-main);
 }
 
+.article-table tr {
+  transition: background 0.2s ease;
+}
 .article-table tr:hover td {
-  background: rgba(73, 177, 245, 0.04);
+  background: rgba(73, 177, 245, 0.06);
+  transform: translateY(-1px);
 }
 
 .title-cell {
