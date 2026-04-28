@@ -55,13 +55,13 @@
       listTitle: '资源分组列表',
       columns: [
         { key: 'name', label: '名称' },
-        { key: 'slug', label: 'Slug' },
-        { key: 'sort_order', label: '顺序' },
+        { key: 'description', label: '描述', format: function (v) { return (v || '').slice(0, 40) + ((v || '').length > 40 ? '...' : ''); } },
+        { key: 'sort_order', label: '排序' },
         { key: 'published', label: '可见', format: function (value) { return value ? '显示' : '隐藏'; } }
       ],
       fields: [
         { name: 'name', label: '分组名称', type: 'text', required: true },
-        { name: 'slug', label: '分组 Slug', type: 'text' },
+        { name: 'slug', label: 'URL 路径名', type: 'text', placeholder: '输入名称后自动生成' },
         { name: 'description', label: '分组描述', type: 'textarea', full: true },
         { name: 'sort_order', label: '排序', type: 'number', defaultValue: 0 },
         { name: 'published', label: '显示该分组', type: 'checkbox', defaultValue: true }
@@ -70,7 +70,8 @@
       createRecord: function (payload) { return BlogDB.createResourceGroup(payload); },
       updateRecord: function (id, payload) { return BlogDB.updateResourceGroup(id, payload); },
       deleteRecord: function (id) { return BlogDB.deleteResourceGroup(id); },
-      toggleRecord: function (id, current) { return BlogDB.updateResourceGroup(id, { published: !current }); }
+      toggleRecord: function (id, current) { return BlogDB.updateResourceGroup(id, { published: !current }); },
+      afterRender: initGenericWidgets
     },
     resource_links: {
       type: 'generic',
@@ -897,10 +898,10 @@
     if (!module || !module.fields) return;
 
     // ---- Slug 自动生成 ----
-    var titleField = module.fields.find(function (f) { return f.name === 'title'; });
+    var titleField = module.fields.find(function (f) { return f.name === 'title' || f.name === 'name'; });
     var slugField = module.fields.find(function (f) { return f.name === 'slug'; });
     if (titleField && slugField) {
-      var $titleInput = $moduleForm.querySelector('[name="title"]');
+      var $titleInput = $moduleForm.querySelector('[name="' + titleField.name + '"]');
       var $slugInput = $moduleForm.querySelector('[name="slug"]');
       if ($titleInput && $slugInput) {
         $titleInput.addEventListener('input', function () {
