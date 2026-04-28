@@ -923,20 +923,28 @@ function initClock() {
 // ----- 返回顶部按钮 -----
 
 function initBackToTop() {
-  const button = document.getElementById("backToTop");
+  var button = document.getElementById("backToTop");
+
+  // 按钮不存在则动态创建
   if (!button) {
-    return;
+    button = document.createElement('button');
+    button.className = 'back-to-top';
+    button.id = 'backToTop';
+    button.type = 'button';
+    button.setAttribute('aria-label', '返回顶部');
+    button.innerHTML = '<i class="fas fa-arrow-up"></i>';
+    document.body.appendChild(button);
   }
 
-  const toggle = () => {
-    button.classList.toggle("is-visible", window.scrollY > 320);
+  var toggle = function () {
+    button.classList.toggle('is-visible', window.scrollY > 320);
   };
 
-  button.addEventListener("click", () => {
-    window.scrollTo({ top: 0, behavior: prefersReducedMotion.matches ? "auto" : "smooth" });
+  button.addEventListener('click', function () {
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion.matches ? 'auto' : 'smooth' });
   });
 
-  window.addEventListener("scroll", toggle, { passive: true });
+  window.addEventListener('scroll', toggle, { passive: true });
   toggle();
 }
 
