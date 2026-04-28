@@ -1,7 +1,19 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python3 -c \":*)"
+      "Bash(python3 -c \":*)",
+      "Bash(node -c admin.js)",
+      "Bash(node:*)",
+      "Bash(curl -s \"https://rgeqokmsbtsqmbtocnij.supabase.co/rest/v1/articles?select=id,title,summary,cover_url,category,read_time,created_at&published=eq.true&order=created_at.desc&limit=5\" -H \"apikey: sb_publishable_zdAE4Lu3bP2KH7tlJQ5Lcg_3up3vQad\" -H \"Authorization: Bearer sb_publishable_zdAE4Lu3bP2KH7tlJQ5Lcg_3up3vQad\")",
+      "Bash(python3 -m json.tool)",
+      "Bash(python -m json.tool)",
+      "Bash(curl -s \"https://rgeqokmsbtsqmbtocnij.supabase.co/rest/v1/projects?select=id,title,summary,description,cover_url,tech_tags,created_at&published=eq.true&order=sort_order.asc&limit=5\" -H \"apikey: sb_publishable_zdAE4Lu3bP2KH7tlJQ5Lcg_3up3vQad\" -H \"Authorization: Bearer sb_publishable_zdAE4Lu3bP2KH7tlJQ5Lcg_3up3vQad\")",
+      "Bash(curl -s \"https://rgeqokmsbtsqmbtocnij.supabase.co/rest/v1/page_sections?select=*\" -H \"apikey: sb_publishable_zdAE4Lu3bP2KH7tlJQ5Lcg_3up3vQad\" -H \"Authorization: Bearer sb_publishable_zdAE4Lu3bP2KH7tlJQ5Lcg_3up3vQad\")",
+      "Bash(python3 -c \"import sys,json; data=json.load\\(sys.stdin\\); print\\(f'{len\\(data\\)} page_sections'\\); [print\\(f' id={d[\\\\\"id\\\\\"][:8]}... page_key={d[\\\\\"page_key\\\\\"]} section_key={d[\\\\\"section_key\\\\\"]} title={d[\\\\\"title\\\\\"]}'\\) for d in data]\")",
+      "Bash(python -c \"import sys,json; data=json.load\\(sys.stdin\\); print\\(f'{len\\(data\\)} page_sections'\\); [print\\(f' id={d[\\\\\"id\\\\\"][:8]}... page_key={d[\\\\\"page_key\\\\\"]} section_key={d[\\\\\"section_key\\\\\"]} title={d[\\\\\"title\\\\\"]}'\\) for d in data]\")",
+      "Bash(curl -s \"https://rgeqokmsbtsqmbtocnij.supabase.co/rest/v1/page_sections?page_key=eq.home&select=*\" -H \"apikey: sb_publishable_zdAE4Lu3bP2KH7tlJQ5Lcg_3up3vQad\" -H \"Authorization: Bearer sb_publishable_zdAE4Lu3bP2KH7tlJQ5Lcg_3up3vQad\")",
+      "Bash(python3 -c ':*)",
+      "Bash(curl:*)"
     ]
   }
 }

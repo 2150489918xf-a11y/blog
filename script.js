@@ -164,6 +164,19 @@ function applySiteSettings(settings) {
     return;
   }
 
+  // 动态更新页面标题
+  const siteName = getSettingValue(settings, "site_name", null);
+  if (siteName) {
+    var currentTitle = document.title;
+    // 保留原标题中 | 后面的部分，只替换站点名
+    var parts = currentTitle.split(' | ');
+    if (parts.length > 1) {
+      document.title = parts[0] + ' | ' + siteName;
+    } else {
+      document.title = siteName;
+    }
+  }
+
   const brandName = getSettingValue(settings, "brand_name", null);
   const brandSubtitle = getSettingValue(settings, "brand_subtitle", null);
   const brandMark = getSettingValue(settings, "brand_mark", null);
