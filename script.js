@@ -360,6 +360,54 @@ const resourceGroupCatalog = [
     ],
   },
   {
+    kicker: "UI 库与图标",
+    title: "让界面更精致的视觉资源",
+    links: [
+      {
+        title: "Lucide Icons",
+        desc: "极简风格的开源图标库，支持多种前端框架，图标线条优美，非常适合现代风格的网页设计。",
+        href: "https://lucide.dev/",
+        label: "极简图标",
+      },
+      {
+        title: "Heroicons",
+        desc: "Tailwind CSS 团队出品的高质量图标库，提供线条和填充两种风格，与现代 UI 布局完美适配。",
+        href: "https://heroicons.com/",
+        label: "Tailwind 风格",
+      },
+      {
+        title: "Google Fonts",
+        desc: "全球最大的免费商用字体库，提供丰富的无衬线、衬线及手写字体，是网页排版的不二之选。",
+        href: "https://fonts.google.com/",
+        label: "字体资源",
+      },
+    ],
+  },
+  {
+    kicker: "开发者成长",
+    title: "系统化的学习与进阶路径",
+    links: [
+      {
+        title: "Roadmap.sh",
+        desc: "最权威的开发者技能路线图，涵盖前端、后端、DevOps 等所有主流技术栈的进阶指引。",
+        href: "https://roadmap.sh/",
+        label: "学习路线",
+      },
+      {
+        title: "FreeCodeCamp",
+        desc: "全球最知名的免费编程学习平台，通过闯关式的实践项目帮助你从零开始掌握前端开发。",
+        href: "https://www.freecodecamp.org/chinese/",
+        label: "零基础实战",
+      },
+      {
+        title: "Frontend Masters",
+        desc: "汇集了全球顶尖前端专家的进阶课程，深入浅出地讲解高级 JS、架构设计等核心技术。",
+        href: "https://frontendmasters.com/",
+        label: "专家进阶",
+      },
+    ],
+  },
+  {
     kicker: "设计灵感",
     title: "页面设计时的参考来源",
     links: [
