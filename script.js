@@ -425,11 +425,29 @@ function renderSidebarDirectory() {
   // 克隆并按时间降序排序文章
   const sortedArticles = [...articleCatalog].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  // 1. 更新文章列表及总数
+  // --- 1. 同步个人资料卡（熊猫头像卡片）的统计数据 ---
+  const authorCardStats = document.querySelector(".profile-hero-card.butterfly-author .profile-hero-stats");
+  if (authorCardStats) {
+    const categories = countValues(articleCatalog.map((article) => article.category));
+    const tags = countValues(articleCatalog.flatMap((article) => article.tags || []));
+    
+    // 依次更新：文章、分类、标签、时间轴的数字
+    const statValues = authorCardStats.querySelectorAll("strong");
+    if (statValues.length >= 4) {
+      statValues[0].textContent = articleCatalog.length; // 文章
+      statValues[1].textContent = categories.size;       // 分类
+      statValues[2].textContent = tags.size;             // 标签
+      statValues[3].textContent = articleCatalog.length; // 时间轴（这里时间轴项数通常等于文章数）
+    }
+  }
+
+  // --- 2. 更新侧边栏小组件（分类/标签切换面板） ---
+  
+  // A. 更新文章列表及总数
   const articlePanel = document.getElementById("sidebarArticles");
   const articleList = document.getElementById("sidebarArticleList");
   if (articlePanel && articleList) {
-    // 动态更新文章总数
+    // 动态更新面板标题中的文章总数
     const titleHeader = articlePanel.querySelector("h2");
     if (titleHeader) {
       titleHeader.innerHTML = `<i class="fas fa-file-alt" aria-hidden="true"></i> ${articleCatalog.length} 文章`;
@@ -451,13 +469,13 @@ function renderSidebarDirectory() {
       .join("");
   }
 
-  // 2. 更新分类列表及总数
+  // B. 更新分类列表及总数
   const categoryPanel = document.getElementById("sidebarCategories");
   const categoryList = document.getElementById("sidebarCategoryList");
   if (categoryPanel && categoryList) {
     const categories = countValues(articleCatalog.map((article) => article.category));
     
-    // 动态更新分类总数
+    // 动态更新面板标题中的分类总数
     const titleHeader = categoryPanel.querySelector("h2");
     if (titleHeader) {
       titleHeader.innerHTML = `<i class="fas fa-th-large" aria-hidden="true"></i> ${categories.size} 分类`;
@@ -468,13 +486,13 @@ function renderSidebarDirectory() {
       .join("");
   }
 
-  // 3. 更新标签列表及总数
+  // C. 更新标签列表及总数
   const tagPanel = document.getElementById("sidebarTags");
   const tagList = document.getElementById("sidebarTagList");
   if (tagPanel && tagList) {
     const tags = countValues(articleCatalog.flatMap((article) => article.tags || []));
 
-    // 动态更新标签总数
+    // 动态更新面板标题中的标签总数
     const titleHeader = tagPanel.querySelector("h2");
     if (titleHeader) {
       titleHeader.innerHTML = `<i class="fas fa-tags" aria-hidden="true"></i> ${tags.size} 标签`;
@@ -485,11 +503,11 @@ function renderSidebarDirectory() {
       .join("");
   }
 
-  // 4. 更新时间轴列表及总数
+  // D. 更新时间轴列表及总数
   const timelinePanel = document.getElementById("sidebarTimeline");
   const timelineList = document.getElementById("sidebarTimelineList");
   if (timelinePanel && timelineList) {
-    // 动态更新时间轴总数
+    // 动态更新面板标题中的时间轴总数
     const titleHeader = timelinePanel.querySelector("h2");
     if (titleHeader) {
       titleHeader.innerHTML = `<i class="fas fa-clock" aria-hidden="true"></i> ${articleCatalog.length} 时间轴`;
