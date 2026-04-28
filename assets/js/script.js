@@ -1611,33 +1611,7 @@ function initForms() {
   });
 }
 
-function initAmbientBackground() {
-  let background = document.querySelector(".bg-animated");
-
-  if (!background) {
-    background = document.createElement("div");
-    background.className = "bg-animated";
-    document.body.prepend(background);
-  }
-
-  background.setAttribute("aria-hidden", "true");
-
-  for (let index = 1; index <= 3; index++) {
-    const className = `shape${index}`;
-    let shape = document.querySelector(`.${className}`);
-
-    if (!shape) {
-      shape = document.createElement("div");
-      shape.className = `shape ${className}`;
-      document.body.insertBefore(shape, background.nextSibling);
-    }
-
-    shape.setAttribute("aria-hidden", "true");
-  }
-}
-
 async function boot() {
-  initAmbientBackground();
   // 数据库连接诊断（结果输出到浏览器控制台）
   if (typeof BlogDB !== 'undefined' && BlogDB.checkConnection) {
     BlogDB.checkConnection();
