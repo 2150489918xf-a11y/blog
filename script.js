@@ -1,4 +1,43 @@
-const articleCatalog = [
+const LOCAL_STORAGE_KEY = 'butterfly_custom_articles';
+
+// 图片压缩工具：将图片文件压缩为 base64 JPEG
+function compressImage(file, maxWidth = 800, quality = 0.7) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let w = img.width, h = img.height;
+        if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+        canvas.width = w;
+        canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        const base64 = canvas.toDataURL('image/jpeg', quality);
+        const sizeKB = Math.round(base64.length * 3 / 4 / 1024);
+        resolve({ base64, sizeKB, width: w, height: h });
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// 获取 localStorage 使用量
+function getStorageUsage() {
+  let total = 0;
+  for (let key in localStorage) {
+    if (localStorage.hasOwnProperty(key)) {
+      total += localStorage[key].length * 2; // UTF-16 每字符 2 字节
+    }
+  }
+  return { usedMB: (total / 1024 / 1024).toFixed(2), maxMB: 5 };
+}
+
+// 原始静态数据
+const staticArticleCatalog = [
   {
     title: "从单页主页到课程设计完整站点",
     category: "课程设计",
@@ -100,6 +139,64 @@ const articleCatalog = [
     tags: ["RAG", "向量数据库", "信息检索"],
   },
 ];
+
+// 合并本地存储和静态数据
+function loadAllArticles() {
+  const localData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+  const processedStatic = staticArticleCatalog.map(a => ({ ...a, id: a.id || a.path }));
+  
+  // 排除掉 ID 冲突的静态项（如果本地修改了静态项）
+  const localIds = new Set(localData.map(a => a.id));
+  const filteredStatic = processedStatic.filter(a => !localIds.has(a.id));
+  
+  return [...localData, ...filteredStatic];
+}
+
+// 供全局使用的动态目录
+let articleCatalog = loadAllArticles();
+
+// 管理功能 API
+window.blogAdmin = {
+  save: (article) => {
+    const localData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+    if (article.id) {
+      const index = localData.findIndex(a => a.id === article.id);
+      if (index > -1) {
+        localData[index] = article; // 更新已有的本地项
+      } else {
+        // 如果修改的是内置文章，则作为新项存入本地（ID保持一致以覆盖）
+        localData.unshift(article); 
+      }
+    } else {
+      localData.unshift({ ...article, id: 'art_' + Date.now() }); // 完全新增
+    }
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localData));
+  },
+  delete: (id) => {
+    let localData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+    const isLocal = localData.some(a => a.id === id);
+    if (isLocal) {
+      localData = localData.filter(a => a.id !== id);
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localData));
+    } else {
+      // 这里的逻辑可以根据需求调整：内置文章暂不支持从代码中物理删除，只能在内存中过滤
+      alert('内置文章删除仅在本次导出前有效，若要彻底删除请修改 script.js');
+    }
+  },
+  getRawCode: () => {
+    // 导出用于覆盖 articleCatalog 的代码（排除 base64 封面图以减小体积）
+    const articles = loadAllArticles().map(a => {
+      const copy = { ...a };
+      delete copy.cover; // 导出时去掉 base64 封面
+      return copy;
+    });
+    return JSON.stringify(articles, null, 2);
+  },
+  getStorageUsage,
+  clearLocal: () => {
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+  }
+};
 
 const projectCatalog = [
   {
@@ -296,6 +393,9 @@ function markCurrentPage() {
 }
 
 function buildArticleCover(article, index) {
+  // 优先使用文章自带的封面图（base64）
+  if (article.cover) return article.cover;
+
   // 根据分类映射图片，增强相关性（现在有 12 张可选图片）
   const categoryMap = {
     'AI 研究': `images/cover${(index % 2 === 0) ? 3 : 7}.png`, // AI 研究交替使用 3 和 7

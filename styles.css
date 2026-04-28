@@ -742,6 +742,67 @@ tbody td { padding: 16px; border-top: 1px solid rgba(171,176,210,0.26); color: v
   .profile-banner { flex-direction: column; text-align: center; padding: 24px; }
 }
 
+/* === 管理后台 === */
+.admin-storage-bar {
+  margin-bottom: 20px; padding: 14px 20px; border-radius: 14px;
+  background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.35);
+}
+.storage-info { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: var(--text-soft); margin-bottom: 8px; }
+.storage-info i { color: var(--accent); }
+.storage-track { height: 6px; border-radius: 3px; background: rgba(164,171,206,0.18); overflow: hidden; }
+.storage-fill { height: 100%; border-radius: 3px; background: var(--accent); transition: width 0.4s, background 0.4s; }
+
+.cover-upload-zone {
+  border: 2px dashed rgba(164,171,206,0.4); border-radius: 16px; cursor: pointer;
+  transition: border-color 0.2s, background 0.2s; overflow: hidden;
+}
+.cover-upload-zone:hover, .cover-upload-zone.is-dragover {
+  border-color: var(--accent); background: rgba(73,177,245,0.04);
+}
+.cover-placeholder {
+  padding: 36px 20px; text-align: center; color: var(--text-muted);
+}
+.cover-placeholder i { font-size: 2rem; margin-bottom: 8px; display: block; color: var(--accent); }
+.cover-placeholder p { margin: 4px 0; font-weight: 600; color: var(--text-soft); }
+.cover-placeholder small { font-size: 0.82rem; }
+
+.cover-preview { position: relative; }
+.cover-preview img { width: 100%; max-height: 240px; object-fit: cover; display: block; border-radius: 14px; }
+.cover-preview-info {
+  position: absolute; bottom: 8px; left: 8px;
+  padding: 4px 10px; border-radius: 8px; font-size: 0.78rem;
+  background: rgba(0,0,0,0.55); color: #fff;
+}
+.cover-remove-btn {
+  position: absolute; top: 8px; right: 8px;
+  width: 28px; height: 28px; border-radius: 50%; border: 0;
+  background: rgba(0,0,0,0.5); color: #fff; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.cover-remove-btn:hover { background: #ff4d93; }
+
+.editor-toolbar {
+  display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 10px;
+  background: rgba(255,255,255,0.7); border: 1px solid rgba(164,171,206,0.28);
+  border-radius: 12px 12px 0 0; border-bottom: 0;
+}
+.toolbar-btn {
+  padding: 6px 10px; border: 0; border-radius: 8px; cursor: pointer;
+  background: transparent; color: var(--text-soft); font-size: 0.88rem;
+}
+.toolbar-btn:hover { background: rgba(73,177,245,0.1); color: var(--accent); }
+.toolbar-btn-accent { color: var(--accent); font-weight: 600; }
+.toolbar-divider { width: 1px; background: rgba(164,171,206,0.28); margin: 2px 6px; }
+
+.editor-toolbar + textarea {
+  border-radius: 0 0 16px 16px !important;
+}
+
+.admin-thumb {
+  width: 48px; height: 34px; object-fit: cover; border-radius: 6px;
+  border: 1px solid rgba(164,171,206,0.2);
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .bg-animated, .shape { animation: none; }
