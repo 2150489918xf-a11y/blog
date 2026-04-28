@@ -11,11 +11,6 @@ function resolvePath(target) {
     return target;
   }
 
-  // 检测无协议的外部域名（如 xiongfan.me），避免被当成相对路径
-  if (/^[\w.-]+\.\w{2,}(\/|$)/.test(target)) {
-    return 'https://' + target;
-  }
-
   const root = document.body.dataset.root;
   if (!root) {
     return target;
@@ -380,9 +375,11 @@ function renderHomeCarouselSection(section) {
       var enriched = Object.assign({}, slide);
       if (meta) {
         enriched.imageUrl = meta.cover || slide.imageUrl;
-        // 只有文章有独立详情页，项目只展示封面不跳转
+        // 文章和项目都有独立详情页
         if (meta.source === 'article' && meta.slug) {
           enriched.linkUrl = resolvePath('pages/articles/' + meta.slug + '.html');
+        } else if (meta.source === 'project' && meta.slug) {
+          enriched.linkUrl = resolvePath('pages/projects/detail.html?slug=' + meta.slug);
         }
       }
       return enriched;
@@ -1055,7 +1052,7 @@ function createProjectCard(project, index) {
         <img src="${imgUrl}" alt="project cover">
       </div>
       <div class="article-info">
-        <h3><a href="${resolvePath(project.path)}" target="_blank" rel="noopener">${project.title}</a></h3>
+        <h3><a href="${resolvePath(project.path)}">${project.title}</a></h3>
         <div class="article-meta">
           <span><i class="far fa-calendar-alt"></i> ${project.date}</span>
           <span><i class="fas fa-inbox"></i> ${project.category}</span>
@@ -1077,7 +1074,9 @@ function mapSupabaseProject(project) {
     category: "项目实战",
     date,
     summary: project.summary || project.description || "",
-    path: project.demo_url || project.repo_url || "pages/projects/index.html",
+    path: project.slug
+      ? "pages/projects/detail.html?slug=" + project.slug
+      : "pages/projects/index.html",
     readTime: project.status || "进行中",
     tags: project.tech_tags || [],
     cover: project.cover_url || "",

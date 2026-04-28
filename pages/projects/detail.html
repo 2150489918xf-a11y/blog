@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>项目详情</title>
+  <link rel="stylesheet" href="../../styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body data-page="project-detail" data-root="../..">
+  <header class="site-header">
+    <div class="shell site-header-inner">
+      <a class="brand" href="../../index.html" aria-label="返回首页">
+        <span class="brand-mark">X</span>
+        <span class="brand-copy">
+          <strong>熊帆的博客</strong>
+          <small>课程设计作品集</small>
+        </span>
+      </a>
+      <nav class="site-nav" aria-label="主导航">
+        <ul class="menu-list">
+          <li><a class="menu-link" href="../../index.html" data-nav-page="home"><i class="fas fa-home"></i> 首页</a></li>
+          <li><a class="menu-link" href="../../pages/articles/index.html" data-nav-page="articles"><i class="fas fa-book"></i> 学习笔记</a></li>
+          <li><a class="menu-link" href="../../pages/projects/index.html" data-nav-page="projects"><i class="fas fa-graduation-cap"></i> 实战教程</a></li>
+          <li><a class="menu-link" href="../../pages/resources/links.html" data-nav-page="resources"><i class="fas fa-folder-open"></i> 资源导航</a></li>
+          <li><a class="menu-link" href="../../pages/about/contact.html" data-nav-page="contact"><i class="fas fa-comments"></i> 互动交流</a></li>
+          <li><a class="menu-link" href="../../pages/profile/resume.html" data-nav-page="resume"><i class="fas fa-info-circle"></i> 关于</a></li>
+        </ul>
+      </nav>
+      <div class="clock-panel" id="siteClock" aria-live="polite">正在加载时间...</div>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero shell">
+      <div class="panel hero-glass">
+        <div class="breadcrumbs">
+          <a href="../../index.html">首页</a><span>/</span>
+          <a href="index.html">实战教程</a><span>/</span>
+          <span id="detailBreadcrumb">加载中...</span>
+        </div>
+        <p class="eyebrow" id="detailKicker">Project</p>
+        <h1 id="detailTitle">加载中...</h1>
+        <p class="hero-summary" id="detailSummary"></p>
+        <div id="detailLinks" style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap;"></div>
+      </div>
+    </section>
+
+    <section class="shell" style="margin-top:20px;">
+      <div class="panel" style="padding:30px;">
+        <div id="detailTags" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;"></div>
+        <div class="prose" id="detailBody" style="max-width:800px;">
+          <p>正在加载项目详情...</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <button class="back-to-top" id="backToTop" type="button" aria-label="返回顶部">
+    <i class="fas fa-arrow-up"></i>
+  </button>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../supabase.js" defer></script>
+  <script>
+    // 项目详情页独立渲染逻辑
+    document.addEventListener('DOMContentLoaded', async function () {
+      const params = new URLSearchParams(window.location.search);
+      const slug = params.get('slug');
+      if (!slug) {
+        document.getElementById('detailTitle').textContent = '未指定项目';
+        return;
+      }
+
+      try {
+        const projects = await BlogDB.getPublishedProjects();
+        const project = (projects || []).find(function (p) { return p.slug === slug; });
+        if (!project) {
+          document.getElementById('detailTitle').textContent = '项目未找到';
+          document.getElementById('detailBody').innerHTML = '<p>找不到该项目，可能已被删除或隐藏。</p>';
+          return;
+        }
+
+        document.title = project.title + ' | 项目详情';
+        document.getElementById('detailBreadcrumb').textContent = project.title;
+        document.getElementById('detailKicker').textContent = project.status || 'Project';
+        document.getElementById('detailTitle').textContent = project.title;
+        document.getElementById('detailSummary').textContent = project.summary || project.description || '';
+
+        // 标签
+        var tagsHtml = (project.tech_tags || []).map(function (t) {
+          return '<span class="badge">' + t + '</span>';
+        }).join('');
+        document.getElementById('detailTags').innerHTML = tagsHtml;
+
+        // 描述正文
+        document.getElementById('detailBody').innerHTML = project.description
+          ? '<p style="white-space:pre-wrap;line-height:1.9;">' + project.description + '</p>'
+          : '<p style="color:var(--text-soft);">暂无详细介绍</p>';
+
+        // 链接按钮
+        var links = [];
+        if (project.demo_url) {
+          var demoHref = /^https?:\/\//i.test(project.demo_url) ? project.demo_url : 'https://' + project.demo_url;
+          links.push('<a href="' + demoHref + '" target="_blank" rel="noopener" class="button-primary" style="display:inline-flex;align-items:center;gap:8px;padding:10px 24px;text-decoration:none;"><i class="fas fa-external-link-alt"></i> 演示链接</a>');
+        }
+        if (project.repo_url) {
+          var repoHref = /^https?:\/\//i.test(project.repo_url) ? project.repo_url : 'https://' + project.repo_url;
+          links.push('<a href="' + repoHref + '" target="_blank" rel="noopener" class="button-primary" style="display:inline-flex;align-items:center;gap:8px;padding:10px 24px;text-decoration:none;background:rgba(36,41,46,0.9);"><i class="fab fa-github"></i> 仓库链接</a>');
+        }
+        document.getElementById('detailLinks').innerHTML = links.join('');
+      } catch (err) {
+        document.getElementById('detailTitle').textContent = '加载失败';
+        document.getElementById('detailBody').innerHTML = '<p>加载项目详情失败，请稍后重试。</p>';
+      }
+    });
+  </script>
+</body>
+</html>
