@@ -1029,6 +1029,28 @@ tbody td { padding: 16px; border-top: 1px solid rgba(171,176,210,0.26); color: v
   to { opacity: 1; transform: translateY(0); }
 }
 
+
 @media (max-width: 768px) {
   .field-grid { grid-template-columns: 1fr; }
+}
+
+/* 加载占位符 */
+.loading-placeholder {
+  grid-column: 1 / -1;
+  padding: 40px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  color: var(--text-lighter);
+  font-size: 0.9rem;
+  border: 1px dashed rgba(73, 177, 245, 0.3);
+  animation: pulse 2s infinite ease-in-out;
+  margin: 20px 0;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
 }

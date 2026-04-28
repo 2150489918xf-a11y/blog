@@ -41,108 +41,7 @@ function getStorageUsage() {
 }
 
 // 原始静态数据
-const staticArticleCatalog = [
-  {
-    title: "从单页主页到课程设计完整站点",
-    category: "课程设计",
-    date: "2026-04-27",
-    summary: "记录如何把原本的单页个人主页改造成 12 页课程设计站点，包括页面拆分、统一导航和共享样式设计。",
-    path: "pages/articles/build-portfolio.html",
-    readTime: "阅读 8 分钟",
-    tags: ["课程设计", "静态站点", "作品集"],
-  },
-  {
-    title: "前端学习路线与项目推进方法",
-    category: "学习路线",
-    date: "2026-04-24",
-    summary: "从 HTML、CSS、JavaScript 到组件化思维，梳理一条适合课堂项目和自学并行推进的学习路线。",
-    path: "pages/articles/frontend-roadmap.html",
-    readTime: "阅读 10 分钟",
-    tags: ["HTML", "CSS", "JavaScript"],
-  },
-  {
-    title: "智能体的设计范式",
-    category: "AI 研究",
-    date: "2026-04-21",
-    summary: "探讨从单步提示到自主智能体架构的演进，分析 ReAct、AutoGPT 等设计模式在实际项目中的落地。",
-    path: "pages/articles/agent-paradigm.html",
-    readTime: "阅读 12 分钟",
-    tags: ["AI Agent", "设计模式", "大模型"],
-  },
-  {
-    title: "仿 Cactus 博客布局的两栏实现",
-    category: "布局实验",
-    date: "2026-04-18",
-    summary: "用主内容流加右侧固定信息栏的方式，还原博客阅读时左侧滚动、右侧目录保持可见的体验。",
-    path: "pages/articles/index.html",
-    readTime: "阅读 7 分钟",
-    tags: ["CSS Grid", "Sticky", "响应式"],
-  },
-  
-  {
-    title: "学习计划表格页的可读性优化",
-    category: "数据展示",
-    date: "2026-04-12",
-    summary: "用状态标签、行间距和响应式容器，让学习计划表既满足课程要求，也方便在窄屏设备阅读。",
-    path: "pages/data/schedule.html",
-    readTime: "阅读 4 分钟",
-    tags: ["表格", "可读性", "课程安排"],
-  },
-  {
-    title: "资源导航页如何组织外部链接",
-    category: "资源整理",
-    date: "2026-04-09",
-    summary: "把 MDN、教程、兼容性工具和项目参考按学习场景归类，让资源页不只是链接堆砌。",
-    path: "pages/resources/links.html",
-    readTime: "阅读 4 分钟",
-    tags: ["资源导航", "MDN", "工具"],
-  },
-  {
-    title: "项目展示卡片的内容层级",
-    category: "项目展示",
-    date: "2026-04-06",
-    summary: "为每个项目卡片安排标题、状态、技术栈和一句话总结，突出作品集页面的信息密度。",
-    path: "pages/projects/index.html",
-    readTime: "阅读 6 分钟",
-    tags: ["项目", "卡片", "信息架构"],
-  },
-  {
-    title: "JavaSE 核心特性深度解析",
-    category: "后端开发",
-    date: "2026-04-28",
-    summary: "从集合框架底层原理到多线程并发控制，系统性梳理 JavaSE 在大型项目开发中的核心技术要点。",
-    path: "pages/articles/javase-core.html",
-    readTime: "阅读 15 分钟",
-    tags: ["Java", "并发编程", "JVM"],
-  },
-  {
-    title: "LangChain 实战：构建 LLM 应用",
-    category: "AI 开发",
-    date: "2026-04-28",
-    summary: "解析 LangChain 的六大核心模块，展示如何通过 Chain 和 Memory 快速搭建具有上下文感知能力的 AI 应用。",
-    path: "pages/articles/langchain-action.html",
-    readTime: "阅读 10 分钟",
-    tags: ["LangChain", "LLM", "Python"],
-  },
-  {
-    title: "LangGraph：控制智能体的循环逻辑",
-    category: "AI 研究",
-    date: "2026-04-28",
-    summary: "探讨如何利用 LangGraph 的状态图结构解决 LangChain 在复杂决策流中的局限性，实现高度可控的循环对话。",
-    path: "pages/articles/langgraph-flow.html",
-    readTime: "阅读 12 分钟",
-    tags: ["LangGraph", "智能体", "状态机"],
-  },
-  {
-    title: "RAG 架构进阶与向量数据库实践",
-    category: "AI 研究",
-    date: "2026-04-28",
-    summary: "深入讨论检索增强生成（RAG）的优化路径，包括 Query Transformation、Rerank 机制及向量数据库的选型对比。",
-    path: "pages/articles/rag-advanced.html",
-    readTime: "阅读 18 分钟",
-    tags: ["RAG", "向量数据库", "信息检索"],
-  },
-];
+const staticArticleCatalog = [];
 
 // 合并本地存储和静态数据
 function loadAllArticles() {
@@ -202,245 +101,13 @@ window.blogAdmin = {
   }
 };
 
-const projectCatalog = [
-  {
-    title: "个人作品集学习博客",
-    category: "课程设计",
-    date: "2026-04-27",
-    summary: "以个人主页为视觉起点，扩展出文章、项目、表单和资源导航的完整多页站点，是本次课程设计的主项目。",
-    path: "pages/projects/index.html",
-    readTime: "进行中",
-    tags: ["HTML", "CSS", "JavaScript"],
-  },
-  {
-    title: "JavaScript 交互组件集",
-    category: "前端练习",
-    date: "2026-04-20",
-    summary: "收纳轮播、表单校验、筛选、返回顶部等基础交互逻辑，为课程设计提供可复用的组件。",
-    path: "pages/projects/index.html",
-    readTime: "持续积累",
-    tags: ["DOM", "事件", "本地存储"],
-  },
-  {
-    title: "AI 智能体对话原型",
-    category: "AI 探索",
-    date: "2026-04-15",
-    summary: "基于 Claude API 和 LangChain 构建的简单对话式智能体，实现多轮对话和上下文记忆功能。",
-    path: "pages/projects/index.html",
-    readTime: "实验阶段",
-    tags: ["Claude API", "LangChain", "Prompt"],
-  },
-  {
-    title: "校园活动记录卡片页",
-    category: "内容展示",
-    date: "2026-04-10",
-    summary: "用于展示社团活动、技术分享、课堂项目等校园生活内容，强化站点的内容厚度。",
-    path: "pages/projects/index.html",
-    readTime: "内容补充",
-    tags: ["语义化 HTML", "响应式布局"],
-  },
-  {
-    title: "学习计划与进度表",
-    category: "数据展示",
-    date: "2026-04-06",
-    summary: "通过表格可视化学习任务、课程安排和技能掌握度，展示信息组织与样式控制能力。",
-    path: "pages/data/schedule.html",
-    readTime: "已完成",
-    tags: ["表格设计", "状态标签"],
-  },
-  {
-    title: "Prompt Engineering 笔记",
-    category: "AI 探索",
-    date: "2026-03-28",
-    summary: "整理提示词工程的核心技巧，包括角色设定、Few-shot、Chain-of-Thought 等常用模式。",
-    path: "pages/projects/index.html",
-    readTime: "持续更新",
-    tags: ["Prompt", "AI", "技巧整理"],
-  },
-];
+const projectCatalog = [];
 
-const friendLinkCatalog = [
-  {
-    title: "MDN Web Docs",
-    desc: "查 HTML、CSS、JavaScript 语法和规范时最稳定的技术参考。",
-    href: "https://developer.mozilla.org/zh-CN/",
-    label: "语法文档",
-  },
-  {
-    title: "菜鸟教程前端专栏",
-    desc: "快速复盘基础概念时很好用，适合课堂知识点回看。",
-    href: "https://www.runoob.com/",
-    label: "入门复习",
-  },
-  {
-    title: "Can I use",
-    desc: "查看浏览器兼容性时的实用工具，方便说明兼容性考虑。",
-    href: "https://caniuse.com/",
-    label: "兼容性",
-  },
-  {
-    title: "GitHub Explore",
-    desc: "观察项目展示方式和 README 结构时可以借鉴的参考来源。",
-    href: "https://github.com/explore",
-    label: "项目参考",
-  },
-];
+const friendLinkCatalog = [];
 
-const resourceGroupCatalog = [
-  {
-    kicker: "语法文档",
-    title: "写代码时最常翻的参考站",
-    links: [
-      {
-        title: "MDN Web Docs",
-        desc: "Mozilla 维护的前端技术文档，语法说明和示例都很完整，遇到 API 不确定时第一个查的地方。",
-        href: "https://developer.mozilla.org/zh-CN/",
-        label: "HTML / CSS / JS",
-      },
-      {
-        title: "Can I use",
-        desc: "输入 CSS 属性或 JS API 就能看到各浏览器的支持情况，答辩时解释兼容性考虑很好用。",
-        href: "https://caniuse.com/",
-        label: "兼容性",
-      },
-      {
-        title: "W3School 中文",
-        desc: "每个标签和属性都有在线编辑器可以直接试，适合快速确认某个写法的效果。",
-        href: "https://www.w3school.com.cn/",
-        label: "快速查阅",
-      },
-    ],
-  },
-  {
-    kicker: "学习平台",
-    title: "课堂外的补充学习资源",
-    links: [
-      {
-        title: "菜鸟教程",
-        desc: "适合快速回顾基础知识点，每个章节都有简洁的代码示例和在线运行环境。",
-        href: "https://www.runoob.com/",
-        label: "基础复盘",
-      },
-      {
-        title: "哔哩哔哩",
-        desc: "前端学习视频最集中的平台，从零基础入门到框架实战都能找到对应课程。",
-        href: "https://www.bilibili.com/",
-        label: "视频教程",
-      },
-      {
-        title: "稀土掘金",
-        desc: "国内前端开发者活跃度最高的社区之一，实战经验和最新技术动态都能看到。",
-        href: "https://juejin.cn/",
-        label: "技术社区",
-      },
-    ],
-  },
-  {
-    kicker: "开发工具",
-    title: "日常开发中离不开的工具",
-    links: [
-      {
-        title: "GitHub",
-        desc: "全球最大的代码托管平台，可以观察优秀项目如何组织代码结构和文档。",
-        href: "https://github.com/explore",
-        label: "代码托管",
-      },
-      {
-        title: "VS Code",
-        desc: "微软出品的轻量级代码编辑器，插件生态丰富，前端开发的主力工具。",
-        href: "https://code.visualstudio.com/",
-        label: "编辑器",
-      },
-      {
-        title: "CodePen",
-        desc: "在线编写 HTML/CSS/JS 并实时预览效果，非常适合快速验证某个想法或调试样式。",
-        href: "https://codepen.io/",
-        label: "在线编码",
-      },
-    ],
-  },
-  {
-    kicker: "UI 库与图标",
-    title: "让界面更精致的视觉资源",
-    links: [
-      {
-        title: "Lucide Icons",
-        desc: "极简风格的开源图标库，支持多种前端框架，图标线条优美，非常适合现代风格的网页设计。",
-        href: "https://lucide.dev/",
-        label: "极简图标",
-      },
-      {
-        title: "Heroicons",
-        desc: "Tailwind CSS 团队出品的高质量图标库，提供线条和填充两种风格，与现代 UI 布局完美适配。",
-        href: "https://heroicons.com/",
-        label: "Tailwind 风格",
-      },
-      {
-        title: "Google Fonts",
-        desc: "全球最大的免费商用字体库，提供丰富的无衬线、衬线及手写字体，是网页排版的不二之选。",
-        href: "https://fonts.google.com/",
-        label: "字体资源",
-      },
-    ],
-  },
-  {
-    kicker: "开发者成长",
-    title: "系统化的学习与进阶路径",
-    links: [
-      {
-        title: "Roadmap.sh",
-        desc: "最权威的开发者技能路线图，涵盖前端、后端、DevOps 等所有主流技术栈的进阶指引。",
-        href: "https://roadmap.sh/",
-        label: "学习路线",
-      },
-      {
-        title: "FreeCodeCamp",
-        desc: "全球最知名的免费编程学习平台，通过闯关式的实践项目帮助你从零开始掌握前端开发。",
-        href: "https://www.freecodecamp.org/chinese/",
-        label: "零基础实战",
-      },
-      {
-        title: "Frontend Masters",
-        desc: "汇集了全球顶尖前端专家的进阶课程，深入浅出地讲解高级 JS、架构设计等核心技术。",
-        href: "https://frontendmasters.com/",
-        label: "专家进阶",
-      },
-    ],
-  },
-  {
-    kicker: "设计灵感",
-    title: "页面设计时的参考来源",
-    links: [
-      {
-        title: "Dribbble",
-        desc: "设计师社区，配色方案、卡片布局、页面风格都能在这里找到灵感。",
-        href: "https://dribbble.com/",
-        label: "UI 设计",
-      },
-      {
-        title: "Color Hunt",
-        desc: "按风格分类的配色卡合集，选颜色时不用自己从零调配，直接挑选组合即可。",
-        href: "https://colorhunt.co/",
-        label: "配色方案",
-      },
-    ],
-  },
-];
-
-const scheduleRows = [
-  { task: "首页轮播与导航联调", time: "周一 9:00-11:00", goal: "完成首页核心交互", status: "已完成" },
-  { task: "文章列表与详情编排", time: "周二 14:00-16:00", goal: "打通文章浏览路径", status: "进行中" },
-  { task: "表单验证与留言页面", time: "周三 10:00-12:00", goal: "完成设置页和留言演示", status: "待开始" },
-  { task: "表格页与链接页完善", time: "周四 15:00-17:00", goal: "补齐指定页面类型", status: "已完成" },
-];
-
-const defaultMessages = [
-  {
-    title: "系统提示",
-    summary: "这里会展示从设置页和留言页提交过来的表单摘要。",
-    time: "首次进入",
-  },
-];
+const resourceGroupCatalog = [];
+const scheduleRows = [];
+const defaultMessages = [];
 
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
@@ -784,6 +451,18 @@ function renderHomeFeedSection(section) {
   if (section.content && section.content.label && link) {
     link.textContent = section.content.label;
   }
+}
+
+function renderSidebarDirectory(counts) {
+  const updateCount = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  };
+
+  updateCount('sidebarArticleCount', counts.articles);
+  updateCount('sidebarCategoryCount', counts.categories);
+  updateCount('sidebarTagCount', counts.tags);
+  updateCount('sidebarTimelineCount', counts.timeline);
 }
 
 function renderHomeAuthorStatsSection(section) {

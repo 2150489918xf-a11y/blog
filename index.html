@@ -53,26 +53,8 @@
           </div>
 
           <div class="note-grid" id="homeNoteGrid">
-            <article class="note-card note-card-mint">
-              <span class="note-tag">Spring AI</span>
-              <h3>课程设计整体站点</h3>
-              <p>把文章、项目、表单和数据页串成统一视觉的多页静态站。</p>
-            </article>
-            <article class="note-card note-card-lemon">
-              <span class="note-tag">前端练习</span>
-              <h3>登录注册与留言流</h3>
-              <p>用原生 JavaScript 完成前端验证和提交反馈展示。</p>
-            </article>
-            <article class="note-card note-card-ice">
-              <span class="note-tag">布局实验</span>
-              <h3>三栏文章阅读页</h3>
-              <p>左侧章节导航，右侧目录，中央长内容阅读区域。</p>
-            </article>
-            <article class="note-card note-card-rose">
-              <span class="note-tag">资料整理</span>
-              <h3>表格与资源导航</h3>
-              <p>展示学习计划、常用工具和课程设计答辩辅助内容。</p>
-            </article>
+            <!-- 由 Supabase 动态加载内容 -->
+            <div class="loading-placeholder">正在加载精选内容...</div>
           </div>
         </section>
         <section class="panel feature-panel">
@@ -85,85 +67,12 @@
 
           <section class="hero-carousel" id="heroCarousel" aria-label="首页轮播">
             <div class="carousel-track" id="heroCarouselTrack">
-              <article class="carousel-slide is-active" data-slide>
-                <div class="carousel-visual visual-red" aria-hidden="true">
-                  <svg viewBox="0 0 760 320" role="img" aria-label="建筑穹顶图片风格插图">
-                    <defs>
-                      <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stop-color="#ffffff"></stop>
-                        <stop offset="100%" stop-color="#d6dcf5"></stop>
-                      </linearGradient>
-                    </defs>
-                    <rect width="760" height="320" rx="30" fill="url(#g1)"></rect>
-                    <g stroke="#3b4151" stroke-width="12" opacity="0.75">
-                      <path d="M40 320C180 40 580 40 720 320"></path>
-                      <path d="M95 320C220 70 540 70 665 320"></path>
-                      <path d="M155 320C260 100 500 100 605 320"></path>
-                      <path d="M225 320C300 120 460 120 535 320"></path>
-                    </g>
-                    <circle cx="380" cy="110" r="92" fill="#e9f5ff"></circle>
-                  </svg>
-                </div>
-                <div class="carousel-content">
-                  <div class="carousel-meta-row">
-                    <span class="chip">课程设计</span>
-                    <span>2026-04-27</span>
-                    <span>约 3 分钟</span>
-                  </div>
-                  <h2>从单页主页到课程设计完整站点</h2>
-                  <p>先把页面类型拆清楚，再用共享样式和共享脚本把它们捏回一个统一博客主题，这是这次改造最关键的路线。</p>
-                </div>
-              </article>
-
-              <article class="carousel-slide" data-slide>
-                <div class="carousel-visual visual-blue" aria-hidden="true">
-                  <svg viewBox="0 0 760 320" role="img" aria-label="知识流动插图">
-                    <rect width="760" height="320" rx="30" fill="#e4f5ff"></rect>
-                    <circle cx="150" cy="100" r="52" fill="#5b62e8"></circle>
-                    <rect x="250" y="80" width="300" height="34" rx="17" fill="#ffffff"></rect>
-                    <rect x="250" y="138" width="250" height="34" rx="17" fill="#ffe169"></rect>
-                    <rect x="250" y="196" width="330" height="34" rx="17" fill="#a5d5ff"></rect>
-                  </svg>
-                </div>
-                <div class="carousel-content">
-                  <div class="carousel-meta-row">
-                    <span class="chip">学习路线</span>
-                    <span>2026-04-24</span>
-                    <span>约 5 分钟</span>
-                  </div>
-                  <h2>前端学习路线与项目推进方法</h2>
-                  <p>把基础知识、课程项目、答辩表达和后续扩展放进同一条主线，页面就不会像临时拼起来的作业。</p>
-                </div>
-              </article>
-
-              <article class="carousel-slide" data-slide>
-                <div class="carousel-visual visual-green" aria-hidden="true">
-                  <svg viewBox="0 0 760 320" role="img" aria-label="彩色几何插图">
-                    <rect width="760" height="320" rx="30" fill="#eaf9ff"></rect>
-                    <polygon points="30,250 170,50 310,250" fill="#5d61ea"></polygon>
-                    <polygon points="450,270 570,70 710,270" fill="#ff7b69"></polygon>
-                    <circle cx="380" cy="150" r="70" fill="#ffffff"></circle>
-                  </svg>
-                </div>
-                <div class="carousel-content">
-                  <div class="carousel-meta-row">
-                    <span class="chip">答辩准备</span>
-                    <span>2026-04-21</span>
-                    <span>约 4 分钟</span>
-                  </div>
-                  <h2>如何准备前端课程设计答辩</h2>
-                  <p>页面职责、交互逻辑和样式复用三件事讲清楚，老师通常就能看出你到底有没有真正理解这份作业。</p>
-                </div>
-              </article>
+              <!-- 由 Supabase 动态加载轮播 -->
             </div>
 
             <div class="carousel-controls">
               <button class="carousel-button" type="button" data-carousel-prev aria-label="上一张">‹</button>
-              <div class="carousel-dots" id="heroCarouselDots" aria-label="轮播位置">
-                <button class="dot is-active" type="button" data-carousel-dot="0" aria-label="第 1 张"></button>
-                <button class="dot" type="button" data-carousel-dot="1" aria-label="第 2 张"></button>
-                <button class="dot" type="button" data-carousel-dot="2" aria-label="第 3 张"></button>
-              </div>
+              <div class="carousel-dots" id="heroCarouselDots" aria-label="轮播位置"></div>
               <button class="carousel-button" type="button" data-carousel-next aria-label="下一张">›</button>
             </div>
           </section>
@@ -194,12 +103,10 @@
           <h2 id="homeAuthorName">熊帆</h2>
           <p id="homeAuthorBio">专注于前端开发与 AI 交互设计</p>
 
-          <div class="profile-hero-stats" id="homeAuthorStats">
-            <div><span>文章</span><strong data-stat-key="articleCount">246</strong></div>
-            <div><span>分类</span><strong data-stat-key="categoryCount">67</strong></div>
-            <div><span>标签</span><strong data-stat-key="tagCount">202</strong></div>
-            <div><span>时间轴</span><strong data-stat-key="timelineCount">228</strong></div>
-          </div>
+            <div><span>文章</span><strong data-stat-key="articleCount">0</strong></div>
+            <div><span>分类</span><strong data-stat-key="categoryCount">0</strong></div>
+            <div><span>标签</span><strong data-stat-key="tagCount">0</strong></div>
+            <div><span>时间轴</span><strong data-stat-key="timelineCount">0</strong></div>
 
           <div class="profile-hero-links butterfly-social" id="homeAuthorSocials">
             <a href="https://space.bilibili.com/441548806?spm_id_from=333.1007.0.0" target="_blank" style="background: #fb7299;" aria-label="Bilibili"><i class="fa-brands fa-bilibili" aria-hidden="true"></i></a>
@@ -230,25 +137,25 @@
           </div>
 
           <div class="sidebar-tab-panel is-active" id="sidebarArticles" role="tabpanel" data-sidebar-panel="articles">
-            <h2><i class="fas fa-file-alt" aria-hidden="true"></i> 246 文章</h2>
+            <h2><i class="fas fa-file-alt" aria-hidden="true"></i> <span id="sidebarArticleCount">0</span> 文章</h2>
             <div class="sidebar-gradient-line" aria-hidden="true"></div>
             <ul class="sidebar-article-list" id="sidebarArticleList"></ul>
           </div>
 
           <div class="sidebar-tab-panel" id="sidebarCategories" role="tabpanel" hidden data-sidebar-panel="categories">
-            <h2><i class="fas fa-th-large" aria-hidden="true"></i> 67 分类</h2>
+            <h2><i class="fas fa-th-large" aria-hidden="true"></i> <span id="sidebarCategoryCount">0</span> 分类</h2>
             <div class="sidebar-gradient-line" aria-hidden="true"></div>
             <div class="sidebar-pill-cloud" id="sidebarCategoryList"></div>
           </div>
 
           <div class="sidebar-tab-panel" id="sidebarTags" role="tabpanel" hidden data-sidebar-panel="tags">
-            <h2><i class="fas fa-tags" aria-hidden="true"></i> 202 标签</h2>
+            <h2><i class="fas fa-tags" aria-hidden="true"></i> <span id="sidebarTagCount">0</span> 标签</h2>
             <div class="sidebar-gradient-line" aria-hidden="true"></div>
             <div class="sidebar-pill-cloud compact" id="sidebarTagList"></div>
           </div>
 
           <div class="sidebar-tab-panel" id="sidebarTimeline" role="tabpanel" hidden data-sidebar-panel="timeline">
-            <h2><i class="fas fa-clock" aria-hidden="true"></i> 228 时间轴</h2>
+            <h2><i class="fas fa-clock" aria-hidden="true"></i> <span id="sidebarTimelineCount">0</span> 时间轴</h2>
             <div class="sidebar-gradient-line" aria-hidden="true"></div>
             <ol class="sidebar-timeline-list" id="sidebarTimelineList"></ol>
           </div>
