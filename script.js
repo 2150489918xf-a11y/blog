@@ -254,23 +254,22 @@ function applySiteSettings(settings) {
     }
   }
 
-  // 联系方式（联系页 + 首页社交链接统一使用 site_settings）
-  var contactEl = document.getElementById("contactEmail");
-  if (contactEl) {
-    contactEl.textContent = getSettingValue(settings, "contact_email", contactEl.textContent);
-  }
-  var githubEl = document.getElementById("contactGithub");
-  if (githubEl) {
-    githubEl.textContent = getSettingValue(settings, "contact_github", githubEl.textContent);
-  }
-  var schoolEl = document.getElementById("contactSchool");
-  if (schoolEl) {
-    schoolEl.textContent = getSettingValue(settings, "contact_school", schoolEl.textContent);
-  }
-  var majorEl = document.getElementById("contactMajor");
-  if (majorEl) {
-    majorEl.textContent = getSettingValue(settings, "contact_major", majorEl.textContent);
-  }
+  // 联系方式（联系页、关于页、首页社交链接统一使用 site_settings）
+  var ids = {
+    contactEmail: 'contact_email',
+    contactGithub: 'contact_github',
+    contactSchool: 'contact_school',
+    contactMajor: 'contact_major',
+    resumeContactEmail: 'contact_email',
+    resumeContactGithub: 'contact_github',
+    resumeContactSchool: 'contact_school',
+  };
+  Object.keys(ids).forEach(function (elId) {
+    var el = document.getElementById(elId);
+    if (el) {
+      el.textContent = getSettingValue(settings, ids[elId], el.textContent);
+    }
+  });
 }
 
 function renderNavigationMenus(items) {
