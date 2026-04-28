@@ -11,6 +11,11 @@ function resolvePath(target) {
     return target;
   }
 
+  // 检测无协议的外部域名（如 xiongfan.me），避免被当成相对路径
+  if (/^[\w.-]+\.\w{2,}(\/|$)/.test(target)) {
+    return 'https://' + target;
+  }
+
   const root = document.body.dataset.root;
   if (!root) {
     return target;
@@ -1050,7 +1055,7 @@ function createProjectCard(project, index) {
         <img src="${imgUrl}" alt="project cover">
       </div>
       <div class="article-info">
-        <h3><a href="${resolvePath(project.path)}">${project.title}</a></h3>
+        <h3><a href="${resolvePath(project.path)}" target="_blank" rel="noopener">${project.title}</a></h3>
         <div class="article-meta">
           <span><i class="far fa-calendar-alt"></i> ${project.date}</span>
           <span><i class="fas fa-inbox"></i> ${project.category}</span>
