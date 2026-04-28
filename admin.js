@@ -388,8 +388,23 @@
     };
   }
 
-  var pageOptions = mappedOptions({ home: '首页', resume: '关于页', resources: '资源导航', contact: '联系页' });
-  var sectionOptions = mappedOptions({ hero_carousel: '首页轮播图', note_board: '首页卡片组', article_feed: '文章列表', author_card: '作者统计卡片' });
+  function pageOptions() {
+    return [
+      { label: '首页', value: 'home' },
+      { label: '关于页', value: 'resume' },
+      { label: '资源导航', value: 'resources' },
+      { label: '联系页', value: 'contact' }
+    ];
+  }
+
+  function sectionOptions() {
+    return [
+      { label: '首页轮播图', value: 'hero_carousel' },
+      { label: '首页卡片组', value: 'note_board' },
+      { label: '文章列表', value: 'article_feed' },
+      { label: '作者统计卡片', value: 'author_card' }
+    ];
+  }
 
   function pageLabel(value) {
     var map = { home: '首页', resume: '关于页', resources: '资源导航', contact: '联系页', settings: '站点设置' };
