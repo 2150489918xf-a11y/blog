@@ -93,10 +93,26 @@
         var date = project.created_at ? new Date(project.created_at).toISOString().slice(0, 10) : '';
         document.getElementById('detailMeta').innerHTML = date ? '<span><i class="far fa-calendar-alt"></i> ' + date + '</span>' : '';
 
-        // 描述正文（复用文章样式）
-        document.getElementById('detailBody').innerHTML = project.description
-          ? '<p style="white-space:pre-wrap;line-height:1.9;">' + project.description + '</p>'
-          : '<p style="color:var(--text-soft);">暂无详细介绍，请在管理后台补充项目描述。</p>';
+        // 描述正文（Markdown 渲染，复用文章样式）
+        if (project.description) {
+          var md = project.description
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:8px;">')
+            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+            .replace(/^#### (.+)$/gm, '<h4>$1</h4>')
+            .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+            .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+            .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g, '<em>$1</em>')
+            .replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>')
+            .replace(/^- (.+)$/gm, '<li>$1</li>')
+            .replace(/\n\n/g, '</p><p>')
+            .replace(/\n/g, '<br>');
+          document.getElementById('detailBody').innerHTML = '<p>' + md + '</p>';
+        } else {
+          document.getElementById('detailBody').innerHTML = '<p style="color:var(--text-soft);">暂无详细介绍，请在管理后台补充项目描述。</p>';
+        }
 
         // 技术标签
         var tagsHtml = (project.tech_tags || []).map(function (t) {

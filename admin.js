@@ -30,7 +30,7 @@
         { name: 'slug', label: 'URL 路径名', type: 'text', placeholder: '输入标题后自动生成' },
         { name: 'cover_url', label: '封面图片', type: 'cover' },
         { name: 'summary', label: '项目摘要', type: 'textarea', full: true },
-        { name: 'description', label: '详细描述', type: 'textarea', full: true },
+        { name: 'description', label: '项目详细介绍（支持 Markdown）', type: 'markdown', full: true },
         { name: 'status', label: '项目状态', type: 'select', options: staticOptions(['进行中', '已完成', '待开始']) },
         { name: 'tech_tags', label: '技术标签', type: 'tags', parse: splitCommaValues },
         { name: 'demo_url', label: '演示地址', type: 'url' },
@@ -1066,6 +1066,90 @@
         }
       });
     }
+
+    // ---- Markdown 编辑器初始化（用于 description 等 markdown 类型字段）----
+    var mdEditors = $moduleForm.querySelectorAll('[data-md-editor]');
+    mdEditors.forEach(function (editor) {
+      var mdInput = editor.querySelector('[data-md-input]');
+      var mdPreview = editor.querySelector('[data-md-preview]');
+      if (!mdInput || !mdPreview) return;
+
+      // 简易 Markdown → HTML 渲染
+      function renderMD(text) {
+        var html = text
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          // 图片
+          .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:8px;">')
+          // 链接
+          .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+          // 标题
+          .replace(/^#### (.+)$/gm, '<h4>$1</h4>')
+          .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+          .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+          .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+          // 粗体/斜体
+          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.+?)\*/g, '<em>$1</em>')
+          // 引用
+          .replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>')
+          // 无序列表
+          .replace(/^- (.+)$/gm, '<li>$1</li>')
+          .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+          // 段落
+          .replace(/\n\n/g, '</p><p>')
+          .replace(/\n/g, '<br>');
+        return '<p>' + html + '</p>';
+      }
+
+      function updateMDPreview() {
+        mdPreview.innerHTML = renderMD(mdInput.value);
+      }
+
+      mdInput.addEventListener('input', updateMDPreview);
+      mdInput.addEventListener('paste', function (e) {
+        var items = (e.clipboardData || e.originalEvent.clipboardData).items;
+        for (var i = 0; i < items.length; i++) {
+          if (items[i].type.indexOf('image') !== -1) {
+            e.preventDefault();
+            var file = items[i].getAsFile();
+            if (file) {
+              toast('正在上传图片...', 'info');
+              BlogDB.uploadImage(file, 'articles').then(function (url) {
+                var mdVal = mdInput.value;
+                var imgMd = '\n![' + (file.name || 'image') + '](' + url + ')\n';
+                var start = mdInput.selectionStart;
+                mdInput.value = mdVal.substring(0, start) + imgMd + mdVal.substring(mdInput.selectionEnd);
+                mdInput.focus();
+                updateMDPreview();
+                toast('图片上传成功', 'success');
+              }).catch(function (err) {
+                toast('图片上传失败: ' + err.message, 'error');
+              });
+            }
+          }
+        }
+      });
+
+      // 工具栏按钮
+      editor.querySelectorAll('[data-md-tool]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var prefix = btn.getAttribute('data-md-tool');
+          var suffix = btn.getAttribute('data-md-suffix') || '';
+          var start = mdInput.selectionStart;
+          var end = mdInput.selectionEnd;
+          var text = mdInput.value;
+          var selected = text.substring(start, end);
+          var replacement = prefix + selected + suffix;
+          mdInput.value = text.substring(0, start) + replacement + text.substring(end);
+          mdInput.focus();
+          mdInput.setSelectionRange(start + prefix.length, start + prefix.length + selected.length);
+          updateMDPreview();
+        });
+      });
+
+      // 初始渲染
+      updateMDPreview();
+    });
   }
 
   // ---- 轮播编辑器辅助函数 ----
@@ -1663,6 +1747,39 @@
         '<label>' + esc(field.label) + (field.required ? ' *' : '') + '</label>' +
         '<input type="text" name="' + field.name + '" value="' + esc(value) + '" placeholder="' + esc(field.placeholder || '') + '" list="dl_' + field.name + '" autocomplete="off">' +
         '<datalist id="dl_' + field.name + '">' + datalistOptions + '</datalist>' +
+      '</div>';
+    }
+
+    if (field.type === 'markdown') {
+      var mdId = 'md_' + field.name;
+      return '<div class="form-group is-full">' +
+        '<label>' + esc(field.label) + (field.required ? ' *' : '') + '</label>' +
+        '<div class="editor-container" data-md-editor data-md-field="' + field.name + '" style="margin-top:0;border:1px solid rgba(169,176,211,0.3);border-radius:12px;overflow:hidden;background:rgba(255,255,255,0.5);">' +
+          '<div class="editor-toolbar" style="padding:8px 15px;background:rgba(255,255,255,0.8);border-bottom:1px solid rgba(169,176,211,0.2);display:flex;gap:15px;align-items:center;flex-wrap:wrap;">' +
+            '<div class="tool-group" style="display:flex;gap:5px;">' +
+              '<button type="button" data-md-tool="## " title="一级标题" style="padding:5px 8px;border:0;background:none;cursor:pointer;color:var(--text-main);"><i class="fas fa-heading"></i>1</button>' +
+              '<button type="button" data-md-tool="### " title="二级标题" style="padding:5px 8px;border:0;background:none;cursor:pointer;color:var(--text-main);"><i class="fas fa-heading"></i>2</button>' +
+              '<button type="button" data-md-tool="#### " title="三级标题" style="padding:5px 8px;border:0;background:none;cursor:pointer;color:var(--text-main);"><i class="fas fa-heading"></i>3</button>' +
+            '</div>' +
+            '<div class="tool-separator" style="width:1px;height:16px;background:rgba(0,0,0,0.1);"></div>' +
+            '<div class="tool-group" style="display:flex;gap:5px;">' +
+              '<button type="button" data-md-tool="**" data-md-suffix="**" title="加粗" style="padding:5px 8px;border:0;background:none;cursor:pointer;color:var(--text-main);"><i class="fas fa-bold"></i></button>' +
+              '<button type="button" data-md-tool="*" data-md-suffix="*" title="斜体" style="padding:5px 8px;border:0;background:none;cursor:pointer;color:var(--text-main);"><i class="fas fa-italic"></i></button>' +
+              '<button type="button" data-md-tool="> " title="引用" style="padding:5px 8px;border:0;background:none;cursor:pointer;color:var(--text-main);"><i class="fas fa-quote-left"></i></button>' +
+            '</div>' +
+            '<div class="tool-separator" style="width:1px;height:16px;background:rgba(0,0,0,0.1);"></div>' +
+            '<div class="tool-group" style="display:flex;gap:5px;">' +
+              '<button type="button" data-md-tool="- " title="无序列表" style="padding:5px 8px;border:0;background:none;cursor:pointer;color:var(--text-main);"><i class="fas fa-list-ul"></i></button>' +
+              '<button type="button" data-md-tool="[" data-md-suffix="](url)" title="超链接" style="padding:5px 8px;border:0;background:none;cursor:pointer;color:var(--text-main);"><i class="fas fa-link"></i></button>' +
+              '<button type="button" data-md-tool="![" data-md-suffix="](url)" title="插入图片" style="padding:5px 8px;border:0;background:none;cursor:pointer;color:var(--accent);"><i class="fas fa-image"></i></button>' +
+            '</div>' +
+            '<span style="margin-left:auto;font-size:0.75rem;color:var(--text-soft);"><i class="fas fa-info-circle"></i> 支持 Markdown 语法和 Ctrl+V 粘贴图片</span>' +
+          '</div>' +
+          '<div class="editor-layout" style="display:grid;grid-template-columns:1fr 1fr;height:400px;">' +
+            '<textarea class="editor-input" name="' + field.name + '" data-md-input style="border:0;border-right:1px solid rgba(169,176,211,0.1);border-radius:0;padding:20px;outline:none;background:transparent;" placeholder="在此输入 Markdown 内容...">' + esc(value) + '</textarea>' +
+            '<div class="editor-preview" data-md-preview style="padding:20px;overflow-y:auto;"></div>' +
+          '</div>' +
+        '</div>' +
       '</div>';
     }
 
