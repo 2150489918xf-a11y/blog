@@ -36,7 +36,7 @@
   /** 获取 Supabase 客户端实例，未初始化则自动创建 */
   function getClient() {
     if (!supabase) {
-      if (typeof supabase === 'undefined' || !window.supabase) {
+      if (!window.supabase) {
         console.warn('[BlogDB] Supabase SDK 未加载，使用本地缓存模式');
         return null;
       }
@@ -118,101 +118,6 @@
   /** 判断是否需要忽略的错误（如表不存在 — 开发阶段正常） */
   function shouldIgnoreContentError(error) {
     return !!(error && /Could not find the table|schema cache/i.test(error.message || ''));
-  }
-
-  async function listRecords(table, options = {}) {
-    const client = getClient();
-    if (!client) return options.emptyValue || [];
-
-    let query = client.from(table).select(options.select || '*');
-
-    if (options.filters) {
-      options.filters.forEach((filter) => {
-        if (filter.operator === 'eq') query = query.eq(filter.column, filter.value);
-        if (filter.operator === 'is') query = query.is(filter.column, filter.value);
-      });
-    }
-
-    if (options.orderBy) {
-      query = query.order(options.orderBy, { ascending: options.ascending !== false });
-    }
-
-    const { data, error } = await query;
-    if (error) {
-      if (!shouldIgnoreContentError(error)) {
-        console.error('[BlogDB]', error.message);
-      }
-      return options.emptyValue || [];
-    }
-
-    return data || options.emptyValue || [];
-  }
-
-  async function getRecord(table, id, options = {}) {
-    const client = getClient();
-    if (!client) return null;
-
-    const { data, error } = await client
-      .from(table)
-      .select(options.select || '*')
-      .eq(options.idColumn || 'id', id)
-      .single();
-
-    if (error) {
-      if (!shouldIgnoreContentError(error)) {
-        console.error('[BlogDB]', error.message);
-      }
-      return null;
-    }
-
-    return data;
-  }
-
-  async function createRecord(table, payload) {
-    const client = getClient();
-    if (!client) throw new Error('Supabase 未连接');
-
-    const { data, error } = await client
-      .from(table)
-      .insert(payload)
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    clearContentCache();
-    return data;
-  }
-
-  async function updateRecord(table, id, payload) {
-    const client = getClient();
-    if (!client) throw new Error('Supabase 未连接');
-
-    const { data, error } = await client
-      .from(table)
-      .update(payload)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    clearContentCache();
-    return data;
-  }
-
-  async function deleteRecord(table, id) {
-    const client = getClient();
-    if (!client) throw new Error('Supabase 未连接');
-
-    const { error } = await client
-      .from(table)
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
-
-    clearContentCache();
   }
 
   // ================================================================

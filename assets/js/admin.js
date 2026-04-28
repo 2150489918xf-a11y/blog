@@ -311,9 +311,7 @@
   // ================================================================
   var state = {
     activeModule: 'articles',
-    isEditingArticle: false,
     isEditingGeneric: false,
-    currentTags: [],
     genericRecordId: null,
     recordCache: {}
   };
@@ -323,9 +321,6 @@
   var $loginForm = document.getElementById('loginForm');
   var $loginError = document.getElementById('loginError');
   var $adminEmail = document.getElementById('adminEmail');
-  var $articleListContainer = document.getElementById('articleListContainer');
-  var $editorCard = document.getElementById('editorCard');
-  var $articleListCard = document.getElementById('articleListCard');
   var $moduleListCard = document.getElementById('moduleListCard');
   var $moduleListContainer = document.getElementById('moduleListContainer');
   var $moduleListTitle = document.getElementById('moduleListTitle');
@@ -336,24 +331,7 @@
   var $btnSaveModule = document.getElementById('btnSaveModule');
   var $btnCancelModuleEdit = document.getElementById('btnCancelModuleEdit');
   var $btnNewArticle = document.getElementById('btnNewArticle');
-  var $btnCancelEdit = document.getElementById('btnCancelEdit');
-  var $btnSaveArticle = document.getElementById('btnSaveArticle');
   var $btnLogout = document.getElementById('btnLogout');
-  var $mdInput = document.getElementById('mdInput');
-  var $mdPreview = document.getElementById('mdPreview');
-  var $dropZone = document.getElementById('dropZone');
-  var $fileInput = document.getElementById('fileInput');
-  var $coverUploadArea = document.getElementById('coverUploadArea');
-  var $coverFileInput = document.getElementById('coverFileInput');
-  var $coverPreview = document.getElementById('coverPreview');
-  var $coverPreviewImg = document.getElementById('coverPreviewImg');
-  var $coverPlaceholder = document.getElementById('coverPlaceholder');
-  var $btnRemoveCover = document.getElementById('btnRemoveCover');
-  var $articleCoverUrl = document.getElementById('articleCoverUrl');
-  var $btnApplyCoverUrl = document.getElementById('btnApplyCoverUrl');
-  var $articleCover = document.getElementById('articleCover');
-  var $tagInput = document.getElementById('tagInput');
-  var $tagWrapper = document.getElementById('tagWrapper');
   var $toastContainer = document.getElementById('toastContainer');
   var $moduleKicker = document.getElementById('moduleKicker');
   var $moduleTitle = document.getElementById('moduleTitle');
@@ -718,77 +696,6 @@
 
   // ---- 轮播编辑器辅助函数 ----
 
-  // ----- 轮播自动填充辅助函数 -----
-
-  function md2html(md) {
-    if (!md) return '';
-    var html = md
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
-      .replace(/`([^`]+)`/g, '<code>$1</code>')
-      .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">')
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-      .replace(/^#### (.+)$/gm, '<h4>$1</h4>')
-      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
-      .replace(/^- (.+)$/gm, '<li>$1</li>')
-      .replace(/(<li>[\s\S]*?<\/li>)/g, function (m) { return '<ul>' + m + '</ul>'; })
-      .replace(/\n\n/g, '</p><p>');
-    return '<p>' + html + '</p>';
-  }
-
-  function renderTags() {
-    var pills = $tagWrapper.querySelectorAll('.tag-pill');
-    pills.forEach(function (pill) { pill.remove(); });
-    state.currentTags.forEach(function (tag, idx) {
-      var pill = document.createElement('span');
-      pill.className = 'tag-pill';
-      pill.innerHTML = esc(tag) + ' <span class="tag-remove" data-idx="' + idx + '">&times;</span>';
-      $tagWrapper.insertBefore(pill, $tagInput);
-    });
-  }
-
-  function updatePreview() {
-    $mdPreview.innerHTML = md2html($mdInput.value);
-  }
-
-  // ============ 编辑器工具栏与粘贴功能 ============
-  // ================================================================
-  //  11. 文章 Markdown 编辑器（全局函数，供 HTML 内联 onclick 调用）
-  // ================================================================
-
-  window._insertMD = function (prefix, suffix) {
-    suffix = suffix || '';
-    var start = $mdInput.selectionStart;
-    var end = $mdInput.selectionEnd;
-    var text = $mdInput.value;
-    var selected = text.substring(start, end);
-    var replacement = prefix + selected + suffix;
-    $mdInput.value = text.substring(0, start) + replacement + text.substring(end);
-    $mdInput.focus();
-    $mdInput.setSelectionRange(start + prefix.length, start + prefix.length + selected.length);
-    updatePreview();
-  };
-
-  async function handlePaste(e) {
-    var items = (e.clipboardData || e.originalEvent.clipboardData).items;
-    for (var i = 0; i < items.length; i++) {
-      if (items[i].type.indexOf('image') !== -1) {
-        var file = items[i].getAsFile();
-        if (file) {
-          e.preventDefault();
-          uploadFile(file);
-        }
-      }
-    }
-  }
-
   function currentModule() {
     return MODULES[state.activeModule] || MODULES.articles;
   }
@@ -815,8 +722,6 @@
     $btnNewArticle.hidden = !isImplemented;
 
     // 文章和通用模块统一使用 moduleListCard / moduleEditorCard
-    $articleListCard.style.display = 'none';
-    $editorCard.style.display = 'none';
     $moduleListCard.style.display = showList ? 'block' : 'none';
     $moduleEditorCard.style.display = showEditor ? 'block' : 'none';
 
@@ -824,195 +729,6 @@
     if (!module.implemented) {
       $modulePlaceholderTitle.textContent = module.placeholderTitle;
       $modulePlaceholderText.textContent = module.placeholderText;
-    }
-  }
-
-  async function uploadFile(file) {
-    if (!file.type.startsWith('image/')) return;
-    toast('正在上传 ' + file.name + '...', 'info');
-
-    try {
-      var url = await BlogDB.uploadImage(file);
-      // 插入到光标位置
-      var start = $mdInput.selectionStart;
-      var end = $mdInput.selectionEnd;
-      var text = $mdInput.value;
-      var mdImg = '\n![' + file.name + '](' + url + ')\n';
-      $mdInput.value = text.substring(0, start) + mdImg + text.substring(end);
-      $mdInput.focus();
-      $mdInput.setSelectionRange(start + mdImg.length, start + mdImg.length);
-      updatePreview();
-      toast('图片已插入正文', 'success');
-    } catch (err) {
-      toast('上传失败: ' + err.message, 'error');
-    }
-  }
-
-  function updateCoverPreview(url) {
-    if (url) {
-      $coverPreviewImg.src = url;
-      $coverPreview.style.display = 'block';
-      $coverPlaceholder.style.display = 'none';
-      $articleCover.value = url;
-      $articleCoverUrl.value = url;
-    } else {
-      $coverPreview.style.display = 'none';
-      $coverPlaceholder.style.display = '';
-      $articleCover.value = '';
-      $articleCoverUrl.value = '';
-    }
-  }
-
-  async function uploadCoverFile(file) {
-    if (!file.type.startsWith('image/')) return;
-    toast('正在上传封面...', 'info');
-
-    try {
-      var url = await BlogDB.uploadImage(file, 'covers');
-      updateCoverPreview(url);
-      toast('封面上传成功', 'success');
-    } catch (err) {
-      toast('封面上传失败: ' + err.message, 'error');
-    }
-  }
-
-  function applyCoverUrl() {
-    var url = $articleCoverUrl.value.trim();
-    if (!url) {
-      toast('请输入封面图片 URL', 'error');
-      return;
-    }
-    updateCoverPreview(url);
-  }
-
-  function removeCover() {
-    updateCoverPreview('');
-    $coverFileInput.value = '';
-    toast('封面已移除');
-  }
-
-  // ================================================================
-  //  7. 文章管理（专属编辑器）
-  // ================================================================
-
-  function renderArticleTable(articles) {
-    if (articles.length === 0) {
-      $articleListContainer.innerHTML = '<p style="color:var(--text-soft);text-align:center;padding:40px;">还没有文章，点击上方「新建文章」开始创作。</p>';
-      return;
-    }
-
-    var rows = articles.map(function (article) {
-      return '<tr>' +
-        '<td class="title-cell">' + esc(article.title) + '</td>' +
-        '<td>' + esc(article.category || '未分类') + '</td>' +
-        '<td><span class="status-dot ' + (article.published ? 'published' : 'draft') + '"></span>' + (article.published ? '已发布' : '草稿') + '</td>' +
-        '<td>' + fmtDate(article.created_at) + '</td>' +
-        '<td><div class="action-group">' +
-          '<button onclick="window._edit(\'' + article.id + '\')"><i class="fas fa-pen"></i></button>' +
-          '<button onclick="window._toggle(\'' + article.id + '\',' + article.published + ')"><i class="fas fa-' + (article.published ? 'eye-slash' : 'eye') + '"></i></button>' +
-          '<button class="danger" onclick="window._del(\'' + article.id + '\')"><i class="fas fa-trash"></i></button>' +
-        '</div></td></tr>';
-    }).join('');
-
-    $articleListContainer.innerHTML = '<table class="article-table"><thead><tr><th>标题</th><th>分类</th><th>状态</th><th>时间</th><th>操作</th></tr></thead><tbody>' + rows + '</tbody></table>';
-  }
-
-  async function loadArticleList() {
-    // 有缓存直接渲染
-    if (state.recordCache.articles) {
-      renderArticleTable(state.recordCache.articles);
-      return;
-    }
-
-    $articleListContainer.innerHTML = '<p style="color:var(--text-soft);text-align:center;padding:60px;">加载中...</p>';
-
-    try {
-      var articles = await BlogDB.getAllArticles();
-      state.recordCache.articles = articles;
-      renderArticleTable(articles);
-    } catch (err) {
-      $articleListContainer.innerHTML = '<p style="color:#ef4444;text-align:center;padding:40px;">加载失败: ' + err.message + '</p>';
-    }
-  }
-
-  function showEditor(article) {
-    state.activeModule = 'articles';
-    state.isEditingArticle = true;
-    state.currentTags = [];
-
-    if (article) {
-      $('articleId').value = article.id;
-      $('articleTitle').value = article.title || '';
-      $('articleSlug').value = article.slug || '';
-      $('articleSummary').value = article.summary || '';
-      $('articleCategory').value = article.category || '';
-      $('articleReadTime').value = article.read_time || 5;
-      $('articleCover').value = article.cover_url || '';
-      updateCoverPreview(article.cover_url || '');
-      $mdInput.value = article.content || '';
-      $('articlePublished').checked = article.published !== false;
-      state.currentTags = article.tags || [];
-      document.getElementById('editorTitle').innerHTML = '<i class="fas fa-pen-to-square"></i> 编辑文章';
-    } else {
-      $('articleId').value = '';
-      $('articleTitle').value = '';
-      $('articleSlug').value = '';
-      $('articleSummary').value = '';
-      $('articleCategory').value = '';
-      $('articleReadTime').value = 5;
-      $('articleCover').value = '';
-      updateCoverPreview('');
-      $mdInput.value = '';
-      $('articlePublished').checked = true;
-      document.getElementById('editorTitle').innerHTML = '<i class="fas fa-plus"></i> 新建文章';
-    }
-
-    renderTags();
-    updatePreview();
-    syncModuleView();
-  }
-
-  function hideEditor() {
-    state.isEditingArticle = false;
-    syncModuleView();
-  }
-
-  async function saveArticle() {
-    var article = {
-      title: $('articleTitle').value.trim(),
-      slug: $('articleSlug').value.trim(),
-      summary: $('articleSummary').value.trim(),
-      content: $mdInput.value,
-      cover_url: $('articleCover').value.trim(),
-      category: $('articleCategory').value.trim(),
-      tags: state.currentTags,
-      read_time: parseInt($('articleReadTime').value, 10) || 5,
-      published: $('articlePublished').checked
-    };
-
-    if (!article.title) {
-      toast('请输入文章标题', 'error');
-      return;
-    }
-
-    if (!article.slug) {
-      article.slug = article.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
-    }
-
-    try {
-      var id = $('articleId').value;
-      if (id) {
-        await BlogDB.updateArticle(id, article);
-        toast('文章更新成功', 'success');
-      } else {
-        await BlogDB.createArticle(article);
-        toast('文章创建成功', 'success');
-      }
-      hideEditor();
-      state.recordCache.articles = null;
-      await loadArticleList();
-    } catch (err) {
-      toast('保存失败: ' + err.message, 'error');
     }
   }
 
@@ -1312,7 +1028,6 @@
   async function setActiveModule(moduleId) {
     if (!MODULES[moduleId]) return;
     state.activeModule = moduleId;
-    state.isEditingArticle = false;
     state.isEditingGeneric = false;
     state.genericRecordId = null;
     syncModuleView();
@@ -1325,72 +1040,6 @@
         setActiveModule(button.dataset.adminModule);
       });
     });
-
-    $tagWrapper.addEventListener('click', function (e) {
-      if (e.target.classList.contains('tag-remove')) {
-        state.currentTags.splice(parseInt(e.target.dataset.idx, 10), 1);
-        renderTags();
-      }
-    });
-
-    $tagInput.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        var val = $tagInput.value.trim();
-        if (val && state.currentTags.indexOf(val) === -1) {
-          state.currentTags.push(val);
-          renderTags();
-        }
-        $tagInput.value = '';
-      }
-    });
-
-    // 输入标题时自动生成 slug
-    $('articleTitle').addEventListener('input', function () {
-      var slugInput = $('articleSlug');
-      // 只在 slug 为空或之前是自动生成的情况下自动填充
-      if (!slugInput.value || slugInput.dataset.autoSlug === '1') {
-        slugInput.value = this.value.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
-        slugInput.dataset.autoSlug = '1';
-      }
-    });
-    $('articleSlug').addEventListener('input', function () {
-      this.dataset.autoSlug = '0';
-    });
-
-    // 正文插图上传
-    $dropZone.addEventListener('click', function () { $fileInput.click(); });
-    $fileInput.addEventListener('change', function (e) { Array.from(e.target.files).forEach(uploadFile); });
-    $dropZone.addEventListener('dragover', function (e) { e.preventDefault(); $dropZone.classList.add('drag-over'); });
-    $dropZone.addEventListener('dragleave', function () { $dropZone.classList.remove('drag-over'); });
-    $dropZone.addEventListener('drop', function (e) {
-      e.preventDefault();
-      $dropZone.classList.remove('drag-over');
-      Array.from(e.dataTransfer.files).forEach(uploadFile);
-    });
-
-    // 封面上传
-    $coverUploadArea.addEventListener('click', function () { $coverFileInput.click(); });
-    $coverFileInput.addEventListener('change', function (e) {
-      if (e.target.files.length > 0) {
-        uploadCoverFile(e.target.files[0]);
-      }
-    });
-    $btnRemoveCover.addEventListener('click', function (e) {
-      e.stopPropagation();
-      removeCover();
-    });
-    $btnApplyCoverUrl.addEventListener('click', applyCoverUrl);
-    $articleCoverUrl.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') { e.preventDefault(); applyCoverUrl(); }
-    });
-
-    $mdInput.addEventListener('input', updatePreview);
-    $mdInput.addEventListener('paste', handlePaste);
-    var $btnToolbarImg = document.getElementById('btnToolbarImg');
-    if ($btnToolbarImg) {
-      $btnToolbarImg.addEventListener('click', function() { $fileInput.click(); });
-    }
 
     $loginForm.addEventListener('submit', async function (e) {
       e.preventDefault();
@@ -1417,8 +1066,6 @@
       }
     });
 
-    $btnCancelEdit.addEventListener('click', hideEditor);
-    $btnSaveArticle.addEventListener('click', saveArticle);
     $btnCancelModuleEdit.addEventListener('click', hideGenericEditor);
     $btnSaveModule.addEventListener('click', saveGenericRecord);
   }
@@ -1437,27 +1084,6 @@
 
     await setActiveModule('articles');
   }
-
-  window._edit = async function (id) {
-    var articles = await BlogDB.getAllArticles();
-    var article = articles.find(function (item) { return item.id === id; });
-    if (article) showEditor(article);
-  };
-
-  window._toggle = async function (id, current) {
-    await BlogDB.togglePublish(id, !current);
-    toast(current ? '已设为草稿' : '已发布', 'success');
-    state.recordCache.articles = null;
-    await loadArticleList();
-  };
-
-  window._del = async function (id) {
-    if (!confirm('确定删除？')) return;
-    await BlogDB.deleteArticle(id);
-    toast('已删除', 'success');
-    state.recordCache.articles = null;
-    await loadArticleList();
-  };
 
   window._moduleEdit = async function (moduleId, id) {
     var record = (state.recordCache[moduleId] || []).find(function (item) { return item.id === id; });

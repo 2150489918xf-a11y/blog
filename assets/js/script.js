@@ -84,10 +84,35 @@ async function loadSiteSettingsFromSupabase() {
 //  2. 数据加载层 — 从 Supabase 获取数据（含内存 + localStorage 双重缓存）
 // ================================================================
 
-async function resolveSiteSettings() {
-  if (activeSiteSettings) {
-    return activeSiteSettings;
+/**
+ * 通用数据加载 + 内存缓存辅助函数
+ * 模式：检查缓存 → 调用 BlogDB API → map 结果 → 写入缓存 → 返回
+ * @param {object} cacheHolder - 持有缓存值的对象
+ * @param {string} cacheKey    - 缓存属性名
+ * @param {string} apiMethod   - BlogDB 上的方法名
+ * @param {function} mapFn     - 可选，对每条记录的映射函数
+ */
+async function resolveCached(cacheHolder, cacheKey, apiMethod, mapFn) {
+  if (cacheHolder[cacheKey]) return cacheHolder[cacheKey];
+  if (typeof BlogDB === "undefined" || typeof BlogDB[apiMethod] !== "function") {
+    cacheHolder[cacheKey] = [];
+    return cacheHolder[cacheKey];
   }
+  try {
+    const data = await BlogDB[apiMethod]();
+    if (data && data.length > 0) {
+      cacheHolder[cacheKey] = mapFn ? data.map(mapFn) : data;
+      return cacheHolder[cacheKey];
+    }
+  } catch (_) { /* 降级到空数据 */ }
+  cacheHolder[cacheKey] = [];
+  return cacheHolder[cacheKey];
+}
+
+const _dataCache = {};
+
+async function resolveSiteSettings() {
+  if (activeSiteSettings) return activeSiteSettings;
   activeSiteSettings = await loadSiteSettingsFromSupabase();
   return activeSiteSettings;
 }
@@ -117,46 +142,8 @@ function resolveNavIcon(item) {
   return map[pageKey] || "fas fa-link";
 }
 
-async function loadNavigationItemsFromSupabase() {
-  if (typeof BlogDB === "undefined" || !BlogDB.getNavigationItems) {
-    return null;
-  }
-
-  try {
-    const data = await BlogDB.getNavigationItems();
-    if (data && data.length > 0) {
-      return data;
-    }
-  } catch (_) {
-    // 降级到静态内容
-  }
-
-  return null;
-}
-
 async function resolveNavigationItems() {
-  if (activeNavigationItems) {
-    return activeNavigationItems;
-  }
-  activeNavigationItems = await loadNavigationItemsFromSupabase();
-  return activeNavigationItems;
-}
-
-async function loadPageSectionsFromSupabase(pageKey) {
-  if (typeof BlogDB === "undefined" || !BlogDB.getPageSections) {
-    return null;
-  }
-
-  try {
-    const data = await BlogDB.getPageSections(pageKey);
-    if (data && data.length > 0) {
-      return data;
-    }
-  } catch (_) {
-    // 降级到静态内容
-  }
-
-  return null;
+  return resolveCached({ activeNavigationItems }, 'activeNavigationItems', 'getNavigationItems');
 }
 
 async function resolvePageSections(pageKey) {
@@ -167,29 +154,8 @@ async function resolvePageSections(pageKey) {
   return pageSectionCache[pageKey];
 }
 
-async function loadProfileBlocksFromSupabase() {
-  if (typeof BlogDB === "undefined" || !BlogDB.getProfileBlocks) {
-    return null;
-  }
-
-  try {
-    const data = await BlogDB.getProfileBlocks();
-    if (data && data.length > 0) {
-      return data;
-    }
-  } catch (_) {
-    // 降级到静态内容
-  }
-
-  return null;
-}
-
 async function resolveProfileBlocks() {
-  if (activeProfileBlocks) {
-    return activeProfileBlocks;
-  }
-  activeProfileBlocks = await loadProfileBlocksFromSupabase();
-  return activeProfileBlocks;
+  return resolveCached({ activeProfileBlocks }, 'activeProfileBlocks', 'getProfileBlocks');
 }
 
 // ================================================================
@@ -1035,28 +1001,8 @@ function mapSupabaseArticle(article, index) {
   };
 }
 
-/** 从 Supabase 加载文章（异步），失败时返回 null */
-async function loadArticlesFromSupabase() {
-  if (typeof BlogDB === "undefined" || !BlogDB.getPublishedArticles) {
-    return null;
-  }
-  try {
-    const data = await BlogDB.getPublishedArticles();
-    if (data && data.length > 0) {
-      return data.map(mapSupabaseArticle);
-    }
-  } catch (_) { /* 降级到本地数据 */ }
-  return null;
-}
-
-/** 实际渲染文章列表的数据源（Supabase 优先，本地降级） */
-let activeArticleCatalog = null;
-
 async function resolveArticleCatalog() {
-  if (activeArticleCatalog) return activeArticleCatalog;
-  const remote = await loadArticlesFromSupabase();
-  activeArticleCatalog = remote || [];
-  return activeArticleCatalog;
+  return resolveCached(_dataCache, 'articles', 'getPublishedArticles', mapSupabaseArticle);
 }
 
 function renderHomeArticles() {
@@ -1127,30 +1073,8 @@ function mapSupabaseProject(project) {
   };
 }
 
-async function loadProjectsFromSupabase() {
-  if (typeof BlogDB === "undefined" || !BlogDB.getPublishedProjects) {
-    return null;
-  }
-
-  try {
-    const data = await BlogDB.getPublishedProjects();
-    if (data && data.length > 0) {
-      return data.map(mapSupabaseProject);
-    }
-  } catch (_) {
-    /* 降级到本地数据 */
-  }
-
-  return null;
-}
-
-let activeProjectCatalog = null;
-
 async function resolveProjectCatalog() {
-  if (activeProjectCatalog) return activeProjectCatalog;
-  const remote = await loadProjectsFromSupabase();
-  activeProjectCatalog = remote || [];
-  return activeProjectCatalog;
+  return resolveCached(_dataCache, 'projects', 'getPublishedProjects', mapSupabaseProject);
 }
 
 function renderProjectCards() {
@@ -1176,30 +1100,8 @@ function mapSupabaseResourceGroup(group) {
   };
 }
 
-async function loadResourceGroupsFromSupabase() {
-  if (typeof BlogDB === "undefined" || !BlogDB.getPublishedResourceGroups) {
-    return null;
-  }
-
-  try {
-    const data = await BlogDB.getPublishedResourceGroups();
-    if (data && data.length > 0) {
-      return data.map(mapSupabaseResourceGroup);
-    }
-  } catch (_) {
-    /* 降级到本地数据 */
-  }
-
-  return null;
-}
-
-let activeResourceGroups = null;
-
 async function resolveResourceGroups() {
-  if (activeResourceGroups) return activeResourceGroups;
-  const remote = await loadResourceGroupsFromSupabase();
-  activeResourceGroups = remote || [];
-  return activeResourceGroups;
+  return resolveCached(_dataCache, 'resourceGroups', 'getPublishedResourceGroups', mapSupabaseResourceGroup);
 }
 
 function createFriendLinkCard(item) {
@@ -1418,30 +1320,8 @@ function mapSupabaseScheduleItem(item) {
   };
 }
 
-async function loadScheduleRowsFromSupabase() {
-  if (typeof BlogDB === "undefined" || !BlogDB.getPublishedScheduleItems) {
-    return null;
-  }
-
-  try {
-    const data = await BlogDB.getPublishedScheduleItems();
-    if (data && data.length > 0) {
-      return data.map(mapSupabaseScheduleItem);
-    }
-  } catch (_) {
-    /* 降级到本地数据 */
-  }
-
-  return null;
-}
-
-let activeScheduleRows = null;
-
 async function resolveScheduleRows() {
-  if (activeScheduleRows) return activeScheduleRows;
-  const remote = await loadScheduleRowsFromSupabase();
-  activeScheduleRows = remote || [];
-  return activeScheduleRows;
+  return resolveCached(_dataCache, 'schedule', 'getPublishedScheduleItems', mapSupabaseScheduleItem);
 }
 
 // ================================================================
