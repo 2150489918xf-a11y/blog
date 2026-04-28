@@ -867,31 +867,41 @@
   //  7. 文章管理（专属编辑器）
   // ================================================================
 
+  function renderArticleTable(articles) {
+    if (articles.length === 0) {
+      $articleListContainer.innerHTML = '<p style="color:var(--text-soft);text-align:center;padding:40px;">还没有文章，点击上方「新建文章」开始创作。</p>';
+      return;
+    }
+
+    var rows = articles.map(function (article) {
+      return '<tr>' +
+        '<td class="title-cell">' + esc(article.title) + '</td>' +
+        '<td>' + esc(article.category || '未分类') + '</td>' +
+        '<td><span class="status-dot ' + (article.published ? 'published' : 'draft') + '"></span>' + (article.published ? '已发布' : '草稿') + '</td>' +
+        '<td>' + fmtDate(article.created_at) + '</td>' +
+        '<td><div class="action-group">' +
+          '<button onclick="window._edit(\'' + article.id + '\')"><i class="fas fa-pen"></i></button>' +
+          '<button onclick="window._toggle(\'' + article.id + '\',' + article.published + ')"><i class="fas fa-' + (article.published ? 'eye-slash' : 'eye') + '"></i></button>' +
+          '<button class="danger" onclick="window._del(\'' + article.id + '\')"><i class="fas fa-trash"></i></button>' +
+        '</div></td></tr>';
+    }).join('');
+
+    $articleListContainer.innerHTML = '<table class="article-table"><thead><tr><th>标题</th><th>分类</th><th>状态</th><th>时间</th><th>操作</th></tr></thead><tbody>' + rows + '</tbody></table>';
+  }
+
   async function loadArticleList() {
+    // 有缓存直接渲染
+    if (state.recordCache.articles) {
+      renderArticleTable(state.recordCache.articles);
+      return;
+    }
+
     $articleListContainer.innerHTML = '<p style="color:var(--text-soft);text-align:center;padding:60px;">加载中...</p>';
 
     try {
       var articles = await BlogDB.getAllArticles();
-
-      if (articles.length === 0) {
-        $articleListContainer.innerHTML = '<p style="color:var(--text-soft);text-align:center;padding:40px;">还没有文章，点击上方「新建文章」开始创作。</p>';
-        return;
-      }
-
-      var rows = articles.map(function (article) {
-        return '<tr>' +
-          '<td class="title-cell">' + esc(article.title) + '</td>' +
-          '<td>' + esc(article.category || '未分类') + '</td>' +
-          '<td><span class="status-dot ' + (article.published ? 'published' : 'draft') + '"></span>' + (article.published ? '已发布' : '草稿') + '</td>' +
-          '<td>' + fmtDate(article.created_at) + '</td>' +
-          '<td><div class="action-group">' +
-            '<button onclick="window._edit(\'' + article.id + '\')"><i class="fas fa-pen"></i></button>' +
-            '<button onclick="window._toggle(\'' + article.id + '\',' + article.published + ')"><i class="fas fa-' + (article.published ? 'eye-slash' : 'eye') + '"></i></button>' +
-            '<button class="danger" onclick="window._del(\'' + article.id + '\')"><i class="fas fa-trash"></i></button>' +
-          '</div></td></tr>';
-      }).join('');
-
-      $articleListContainer.innerHTML = '<table class="article-table"><thead><tr><th>标题</th><th>分类</th><th>状态</th><th>时间</th><th>操作</th></tr></thead><tbody>' + rows + '</tbody></table>';
+      state.recordCache.articles = articles;
+      renderArticleTable(articles);
     } catch (err) {
       $articleListContainer.innerHTML = '<p style="color:#ef4444;text-align:center;padding:40px;">加载失败: ' + err.message + '</p>';
     }
@@ -971,6 +981,7 @@
         toast('文章创建成功', 'success');
       }
       hideEditor();
+      state.recordCache.articles = null;
       await loadArticleList();
     } catch (err) {
       toast('保存失败: ' + err.message, 'error');
@@ -1265,6 +1276,7 @@
   async function refreshActiveModule() {
     var module = currentModule();
     if (module.type === 'article') {
+      state.recordCache.articles = null;
       await loadArticleList();
       return;
     }
@@ -1416,6 +1428,7 @@
   window._toggle = async function (id, current) {
     await BlogDB.togglePublish(id, !current);
     toast(current ? '已设为草稿' : '已发布', 'success');
+    state.recordCache.articles = null;
     await loadArticleList();
   };
 
@@ -1423,6 +1436,7 @@
     if (!confirm('确定删除？')) return;
     await BlogDB.deleteArticle(id);
     toast('已删除', 'success');
+    state.recordCache.articles = null;
     await loadArticleList();
   };
 
