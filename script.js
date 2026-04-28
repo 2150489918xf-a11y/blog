@@ -1016,8 +1016,8 @@ function mapSupabaseArticle(article, index) {
     date: date,
     summary: article.summary || "",
     path: article.slug
-      ? resolvePath("pages/articles/" + article.slug + ".html")
-      : resolvePath("pages/articles/index.html"),
+      ? "pages/articles/" + article.slug + ".html"
+      : "pages/articles/index.html",
     readTime: "阅读 " + (article.read_time || 5) + " 分钟",
     tags: article.tags || [],
     cover: article.cover_url || "",
