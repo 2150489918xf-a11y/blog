@@ -16,6 +16,11 @@
   // ================================================================
   //  工具函数（从 admin.js 复制，保持本文件自包含）
   // ================================================================
+  /** 获取表单元素（在 admin.js 中挂载到 window.adminModuleForm） */
+  function getModuleForm() {
+    return window.adminModuleForm || document.getElementById('moduleForm');
+  }
+
   /** HTML 转义，防止 XSS */
   function esc(s) {
     if (!s && s !== 0) return "";
@@ -51,7 +56,7 @@
   function getDefaultStructuredPlacement(moduleId) {
     if (moduleId !== 'page_sections') return 'main';
 
-    var sectionKeyNode = $moduleForm ? $moduleForm.querySelector('[name="section_key"]') : null;
+    var sectionKeyNode = getModuleForm() ? getModuleForm().querySelector('[name="section_key"]') : null;
     var sectionKey = sectionKeyNode ? String(sectionKeyNode.value || '').trim() : '';
 
     if (/^(usage_tips_card|contact_info_card|page_note_card|validation_card|jump_list_card)$/.test(sectionKey)) {
@@ -68,8 +73,8 @@
   /** 根据内容数据自动检测内容类型（slides/cards/stats/...） */
   function detectStructuredType(moduleId, content) {
     var normalized = content || {};
-    var sectionKeyNode = $moduleForm ? $moduleForm.querySelector('[name="section_key"]') : null;
-    var blockKeyNode = $moduleForm ? $moduleForm.querySelector('[name="block_key"]') : null;
+    var sectionKeyNode = getModuleForm() ? getModuleForm().querySelector('[name="section_key"]') : null;
+    var blockKeyNode = getModuleForm() ? getModuleForm().querySelector('[name="block_key"]') : null;
     var sectionKey = sectionKeyNode ? String(sectionKeyNode.value || '').trim() : '';
     var blockKey = blockKeyNode ? String(blockKeyNode.value || '').trim() : '';
     var layout = normalized.layout || '';
@@ -552,7 +557,7 @@
       };
     }
 
-    return parseContentObject($moduleForm.querySelector('[name="content"]').value);
+    return parseContentObject(getModuleForm().querySelector('[name="content"]').value);
   }
 
   function appendStructuredEntry(type, content) {
@@ -658,7 +663,7 @@
   function initStructuredContentEditor(moduleId) {
     if (moduleId !== 'page_sections' && moduleId !== 'profile_blocks') return;
 
-    var contentField = $moduleForm.querySelector('[name="content"]');
+    var contentField = getModuleForm().querySelector('[name="content"]');
     if (!contentField) return;
 
     var anchor = contentField.closest('.form-group');
@@ -767,7 +772,7 @@
     });
 
     ['page_key', 'section_key', 'block_key'].forEach(function (fieldName) {
-      var node = $moduleForm.querySelector('[name="' + fieldName + '"]');
+      var node = getModuleForm().querySelector('[name="' + fieldName + '"]');
       if (!node) return;
       node.addEventListener('change', function () {
         if (!String(contentField.value || '').trim() || shell.dataset.structuredType === 'custom') {

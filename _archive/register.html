@@ -41,6 +41,7 @@
   <!-- Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- 数据库封装 -->
+  <script src="assets/js/supabase-core.js"></script>
   <script src="assets/js/supabase.js"></script>
 
   <script>
@@ -75,7 +76,7 @@
       if (password !== confirm) return showError('两次密码不一致');
 
       try {
-        var client = BlogDB.getClient();
+        var client = BlogDBCore.getClient();
         if (!client) throw new Error('Supabase 未连接，请检查 supabase.js 配置');
 
         var result = await client.auth.signUp({ email: email, password: password });
